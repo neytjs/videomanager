@@ -1,0 +1,35 @@
+{
+  "name": "videomanager",
+  "version": "2.0.0",
+  "description": "electron react nedb project",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "babel": "babel",
+    "webpack": "webpack",
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "Nate",
+  "license": "MIT",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "electron": "^1.6.11",
+    "history": "^4.7.2",
+    "nedb": "^1.8.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-router-dom": "^4.2.2",
+    "styled-components": "^2.4.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.18.2",
+    "babel-loader": "^6.2.7",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-es2017": "^6.24.1",
+    "babel-preset-react": "^6.16.0",
+    "css-loader": "^0.28.7",
+    "style-loader": "^0.19.1",
+    "webpack": "^1.13.3"
+  }
+}
