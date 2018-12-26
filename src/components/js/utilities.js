@@ -18,7 +18,7 @@ class Utilities {
         song_string = song_string.replace(/[^A-Za-z0-9"\s]/g, "");
         song_string = song_string.toLowerCase();
         song_string = song_string.trim();
-        if (property_name === "video_lyrics") {
+        if (property_name === "video_lyrics" || property_name === "video_tags") {
           let searchedRegExp = new RegExp(`\\b${searched}\\b`, 'i');
           if (searchedRegExp.test(song_string) === true) {
             matches.push(songs_lyrics[j]);
