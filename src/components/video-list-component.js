@@ -32,6 +32,7 @@ class VideoList extends Component {
       hidden_videos: [],
       hidden: 0,
       search: "",
+      searchRef: React.createRef(),
       displaying: false
     };
   }
@@ -129,6 +130,8 @@ class VideoList extends Component {
           this.setState({videos: docs});
           this.setState({counter: this.state.videos.length, hidden_videos: [], hidden: 0});
         }
+        let offset = this.state.searchRef.current.getBoundingClientRect();
+        window.scrollTo(0, offset.top);       
      }.bind(this));
   }
 
@@ -574,16 +577,18 @@ class VideoList extends Component {
         : ""
         }
         <hr/>
-        { search !== "" ?
-        <span>
-          <b>Searching for: </b>
-          {search}
-          <br/>
-        </span>
-        : <br/> }
-        <b>{counter} results{ hidden > 0 ? <span> <a onClick={this.showHidden}>{"(" + hidden + " hidden)"}</a></span> : "" }: { (counter < this.state.total_videos) ? <button onClick={this.viewAll}>View All Videos</button> : ""}</b>
-        <Table videos={this.state.videos} table={"main"} displayVideo={this.displayVideo.bind(this)} hideVideo={this.hideVideo.bind(this)} addToHistory={this.addToHistory.bind(this)}
-         orderBySong={this.orderBySong.bind(this)} orderByBand={this.orderByBand.bind(this)} orderByYear={this.orderByYear.bind(this)} orderByStars={this.orderByStars.bind(this)}></Table>
+        <div ref={searchRef}>
+          { search !== "" ?
+          <span>
+            <b>Searching for: </b>
+            {search}
+            <br/>
+          </span>
+          : <br/> }
+          <b>{counter} results{ hidden > 0 ? <span> <a onClick={this.showHidden}>{"(" + hidden + " hidden)"}</a></span> : "" }: { (counter < this.state.total_videos) ? <button onClick={this.viewAll}>View All Videos</button> : ""}</b>
+          <Table videos={this.state.videos} table={"main"} displayVideo={this.displayVideo.bind(this)} hideVideo={this.hideVideo.bind(this)} addToHistory={this.addToHistory.bind(this)}
+           orderBySong={this.orderBySong.bind(this)} orderByBand={this.orderByBand.bind(this)} orderByYear={this.orderByYear.bind(this)} orderByStars={this.orderByStars.bind(this)}></Table>
+        </div>      
       </div>
     )
   }
