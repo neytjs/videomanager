@@ -565,7 +565,7 @@ class VideoList extends Component {
   }
 
   render() {
-    const { show_search, show_add, counter, hidden, search, displaying, colors } = this.state;
+    const { show_search, show_add, counter, hidden, search, displaying, colors, searchRef } = this.state;
     return (
       <div>
         <Ui currentLoc={"main"} searchVideos={this.searchVideos.bind(this)} appData={this.props.appData}></Ui>
