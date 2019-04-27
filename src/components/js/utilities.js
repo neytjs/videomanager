@@ -165,108 +165,75 @@ class Utilities {
       }
     }
 
-    static pieChartCreator(height, width, pie_chart_data, insert_canvas) {
-    		var radius = width * 0.25;
-    		var cx = width * 0.4;
-    		var cy = height / 2;
+    static arrayShuffler(the_array) {
+    	Array.prototype.shuffle = function (old_index, new_index) {
+    		this.splice(new_index, 0, this.splice(old_index, 1)[0]);
+    		return this[new_index];
+    	};
 
-    		var color = ['#008000', '#0000FF', '#98B098', '#FF40FF', '#FF0000', '#800080', '#00C0C0', '#FB880D', '#04879A', '#C06300'];
+      let shuffled_array = [];
+      let array_length = the_array.length;
+      let numbers = [];
 
-    		var data = [];
+      for (var i = 0; i < array_length; i++) {
+        numbers.push(i);
+      }
 
-    		for (var i = 0; i < pie_chart_data.length; i++) {
-    			data.push({ title: pie_chart_data[i].genre_name, percent: pie_chart_data[i].genre_percentage });
-    		}
+      let array_counter = array_length;
+      let counter = 0;
 
-    		var d_length = data.length;
+      function randomize() {
+        array_counter = array_counter - 1;
+        counter = counter + 1;
+        let random = Math.round(array_counter * Math.random());
+        let num = numbers.shuffle(random, array_counter);
+        shuffled_array.push(the_array[num]);
 
-    		var percents = 0;
+        if (counter < array_length) {
+          randomize();
+        }
+      }
 
-    		var numbers = [];
-    		for (var i = 0; i < color.length; i++) {
-    			numbers.push(i);
-    		}
-    		var counter = numbers.length;
+      randomize();
+      
+      return shuffled_array;
+    }
 
-    		Array.prototype.shuffle = function (old_index, new_index) {
-    			this.splice(new_index, 0, this.splice(old_index, 1)[0]);
-    			return this[new_index];
-    		};
+    static doubleShuffler(first_array, second_array) {
+    	Array.prototype.shuffle = function (old_index, new_index) {
+    		this.splice(new_index, 0, this.splice(old_index, 1)[0]);
+    		return this[new_index];
+    	};
 
-    		for (var j = 0; j < d_length; j++) {
-    			counter = counter - 1;
-    			var random = Math.round(counter * Math.random());
-    			percents += data[j].percent;
+      let first_shuffled_array = [];
+      let second_shuffled_array = [];
+      let array_length = first_array.length;
+      let numbers = [];
 
-    			if (j === 0) {
-    				data[j].prev_per = 0;
-    				data[j].radians = 0;
+      for (var i = 0; i < array_length; i++) {
+        numbers.push(i);
+      }
+      
+      let array_counter = array_length;
+      let counter = 0;
 
-    				var num = numbers.shuffle(random, counter);
+      function randomize() {
+        array_counter = array_counter - 1;
+        counter = counter + 1;
+        let random = Math.round(array_counter * Math.random());
+        let num = numbers.shuffle(random, array_counter);
+        first_shuffled_array.push(first_array[num]);
+        second_shuffled_array.push(second_array[num]);
+        
+        if (counter < array_length) {
+          randomize();
+        }
+      }
 
-    				data[j].color = color[num];
-    			} else {
-    				var pers = 0;
+      randomize();
 
-    				for (var k = 0; k < j; k++) {
-    					pers += data[k].percent;
-    					data[j].prev_per = pers;
-
-    					data[j].radians = ((data[j].prev_per / 100) * 360) * Math.PI / 180;
-
-    					var num = numbers.shuffle(random, counter);
-
-    					data[j].color = color[num];
-    				}
-    			}
-    		}
-
-    			var canvas = insert_canvas;
-    			var context = canvas.getContext('2d');
-    			context.clearRect(0, 0, width, height);
-    			context.beginPath();
-    			context.arc(cx, cy, radius, 0, 2 * Math.PI, false);
-    			context.stroke();
-
-    			for (var i = 0; i < d_length; i++) {
-    				if (data[i].percent > 0) {
-    					var current_rads = (((data[i].percent / 100) * 360) * Math.PI / 180) + data[i].radians;
-
-    					var title = ' ' + data[i].title + ', ' + data[i].percent.toFixed(2) + '%';
-
-    					context.fillStyle = data[i].color;
-    					context.beginPath();
-    					context.strokeStyle = '#000000';
-    					context.lineWidth = 1;
-    					context.moveTo(cx, cy);
-    					context.arc(cx, cy, 100, data[i].radians, current_rads, false);
-    					context.closePath();
-
-    					var angle = (((data[i].percent / 2) + data[i].prev_per) / 100) * Math.PI * 2;
-    					var x = Math.cos(angle) * radius + cx;
-    					var y = Math.sin(angle) * radius + cy;
-    					context.moveTo(x, y);
-
-    					if (angle <= ((Math.PI * 2) * 0.25)) {
-    						context.lineTo(x + 25, y + 25);
-    						context.fillText(title, x + 25, y + 25);
-    					} else if (angle <= ((Math.PI * 2) * 0.5) && angle >= ((Math.PI * 2) * 0.25)) {
-    						context.lineTo(x - 25, y + 25);
-    						context.fillText(title, x - 55, y + 35);
-    					} else if (angle <= ((Math.PI * 2) * 0.75) && angle >= ((Math.PI * 2) * 0.5)) {
-    						context.lineTo(x - 25, y - 25);
-    						context.fillText(title, x - 55, y - 30);
-    					} else if (angle <= ((Math.PI * 2) * 1) && angle >= ((Math.PI * 2) * 0.75)) {
-    						context.lineTo(x + 25, y - 25);
-    						context.fillText(title, x + 25, y - 25);
-    					}
-
-    					context.closePath();
-    					context.fill();
-    					context.stroke();
-    				}
-    			}
-    	}
+      return { first_array: first_shuffled_array, second_array: second_shuffled_array };
+    }
 }
 
 export default Utilities;
