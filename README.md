@@ -12,10 +12,13 @@ webpack
 https://www.npmjs.com/package/webpack
 
 electron
-https://electronjs.org/docs/tutorial/about
+https://www.electronjs.org/docs/tutorial/about
 
 react
-https://reactjs.org/
+https://www.reactjs.org/
 
 nedb
 https://www.npmjs.com/package/nedb
+
+chart.js
+https://www.chartjs.org/
