@@ -585,7 +585,7 @@ class VideoList extends Component {
             <br/>
           </span>
           : <br/> }
-          <b>{counter} results{ hidden > 0 ? <span> <a onClick={this.showHidden}>{"(" + hidden + " hidden)"}</a></span> : "" }: { (counter < this.state.total_videos) ? <button onClick={this.viewAll}>View All Videos</button> : ""}</b>
+          <b>{counter.toLocaleString('en-US', {minimumFractionDigits: 0})} results{ hidden > 0 ? <span> <a onClick={this.showHidden}>{"(" + hidden + " hidden)"}</a></span> : "" }: { (counter < this.state.total_videos) ? <button onClick={this.viewAll}>View All Videos</button> : ""}</b>
           <Table videos={this.state.videos} table={"main"} displayVideo={this.displayVideo.bind(this)} hideVideo={this.hideVideo.bind(this)} addToHistory={this.addToHistory.bind(this)}
            orderBySong={this.orderBySong.bind(this)} orderByBand={this.orderByBand.bind(this)} orderByYear={this.orderByYear.bind(this)} orderByStars={this.orderByStars.bind(this)}></Table>
         </div>      
