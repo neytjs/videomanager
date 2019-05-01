@@ -136,7 +136,7 @@ class VideoList extends Component {
   }
 
   searchString(video_title, band, mintomax, maxtomin, genre, lyrics, ifyears, tag, stars) {
-    let search_string = "";
+    let search_string = "Searching videos ";
     let search_array = [];
 
     if (video_title !== "") {
@@ -580,7 +580,6 @@ class VideoList extends Component {
         <div ref={searchRef}>
           { search !== "" ?
           <span>
-            <b>Searching for: </b>
             {search}
             <br/>
           </span>
