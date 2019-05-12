@@ -1,24 +1,21 @@
-A simple video manager made with Electron, React, and NeDB. To install you will
-need node/npm, webpack, and electron-packager. Once you have downloaded and
-navigated to this directory, simply run npm install, webpack, and then
-electron-packager.
+A simple video manager made with Electron, React, and NeDB. To install you will need node/npm, webpack, and electron-packager. Once you have downloaded and navigated to this directory, simply run npm install, webpack, and then electron-packager.
 
 For more info on the technologies used in development, consult the following:
 
-electron-packager
+electron-packager 
 https://www.npmjs.com/package/electron-packager
 
-webpack
+webpack 
 https://www.npmjs.com/package/webpack
 
-electron
+electron 
 https://www.electronjs.org/docs/tutorial/about
 
-react
+react 
 https://www.reactjs.org/
 
-nedb
+nedb 
 https://www.npmjs.com/package/nedb
 
-chart.js
+chart.js 
 https://www.chartjs.org/

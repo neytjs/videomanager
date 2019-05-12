@@ -7,7 +7,8 @@ app.on('ready', () => {
 	mainWindow = new BrowserWindow({
 		height: 1024,
 		width: 768,
-		webPreferences: {webSecurity: false}
+		webPreferences: {webSecurity: false},
+		icon: require('path').join(__dirname, 'vm.png')
 	});
 
 	let url = require('url').format({
@@ -18,11 +19,14 @@ app.on('ready', () => {
 
 	mainWindow.loadURL(url);
 	mainWindow.maximize();
+	mainWindow.setMenu(null);
+//	mainWindow.webContents.openDevTools();
 });
 
 let darwin = process.platform === 'darwin';
 
 app.on('window-all-closed', () => {
+
   if (!darwin) {
     app.quit();
   }
