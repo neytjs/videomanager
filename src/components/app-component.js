@@ -11,6 +11,7 @@ import ColorData from './js/color_data.js';
 import AppData from './js/app_data.js';
 const color_storage = ColorData.color_storage();
 const defaultAppData = AppData.defaultAppData();
+
 import { createHashHistory } from 'history';
 const hashHistory = createHashHistory();
 
@@ -39,11 +40,14 @@ class App extends Component {
 
   getAppData() {
     return new Promise(resolve => {
+
       app_data.findOne({}, function(err, dat) {
+
         if (dat) {
           resolve(dat);
         } else {
           app_data.insert(defaultAppData, function(err, docs) {
+
             resolve(docs);
           });
         }
@@ -53,11 +57,14 @@ class App extends Component {
 
   getColors() {
     return new Promise(resolve => {
+
       colors.findOne({}, function(err, cols) {
+
         if (cols) {
           resolve(cols);
         } else {
           colors.insert(color_storage, function(err, docs) {
+
             resolve(docs);
           });
         }
@@ -67,9 +74,11 @@ class App extends Component {
 
   getVideos() {
     return new Promise(resolve => {
+
       videos.find({}, function(err, entries) {
         videos_shortterm.insert(entries, function(err, docs) {
           let result = true;
+
           resolve(result);
         });
       });
@@ -77,15 +86,22 @@ class App extends Component {
   }
 
   async componentDidMount() {
+
     let colors = await this.getColors();
+
     let app_data = await this.getAppData();
+
     let videos_s = await this.getVideos();
+
     this.setState({ colors: colors, app_data: app_data, videos_loaded: videos_s });
+
     this.setState({ loaded: true });
+
     document.body.style.backgroundColor = this.state.colors.body_background_color;
   }
 
   setRoutes() {
+
     if (this.state.loaded === false) {
       const loadingApp = () => <div>Loading...</div>
       return (
@@ -94,6 +110,7 @@ class App extends Component {
         </Switch>
       )
     } else if (this.state.loaded === true) {
+
       const videoList = () => <VideoList videos={videos} videos_shortterm={videos_shortterm} history={history} colorData={this.state.colors} appData={this.state.app_data}></VideoList>
       const addVid = () => <AddVideo videos={videos} videos_shortterm={videos_shortterm} colorData={this.state.colors} appData={this.state.app_data}></AddVideo>
       const histList = () => <History history={history} colorData={this.state.colors}></History>
@@ -216,6 +233,20 @@ class App extends Component {
         color: ${colors.div_a_color};
         font-size: ${colors.table_th_fontsize};
         cursor: ${colors.button_cursor};
+      }
+
+      .editor {
+        padding: ${colors.input_padding};
+        border: ${colors.input_border};
+        background: ${colors.input_backgroundcolor};
+        border-radius: ${colors.input_borderradius};
+        height: ${colors.editor_height};
+        overflow: auto;
+        white-space: pre-wrap;
+      }
+
+      .editor:focus {
+        outline: none;
       }
     `;
     return (

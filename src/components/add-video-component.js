@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import Utilities from './js/utilities.js';
 import Ui from './ui-component';
 import SelectYear from './select-year-component';
 import SelectGenre from './select-genre-component';
@@ -24,7 +25,6 @@ class AddVideo extends Component {
       code: "",
       band: "",
       year: "",
-      lyrics: "",
       genre: "",
       type: "",
       tag: "",
@@ -33,22 +33,24 @@ class AddVideo extends Component {
   }
 
   handleSubmit(e) {
-    if (this.state.code === "" || this.state.title === "" || this.state.band === "" || this.state.year === "" || this.state.genre === "" || this.state.type === "") {
-      alert("A title, band, year, genre, type, and video code are required.");
-    } else {
-      this.addVideo(this.state.code, this.state.title, this.state.band, this.state.year, this.state.lyrics, this.state.genre, this.state.type, this.state.tags);
-      this.setState({ code: "", title: "", band: "", year: "", lyrics: "", genre: "", type: "", tags: [] });
-    }
 
-    e.preventDefault();
+      if (this.state.code === "" || this.state.title === "" || this.state.band === "" || this.state.year === "" || this.state.genre === "" || this.state.type === "") {
+        alert("A title, band, year, genre, type, and video code are required.");
+      } else {
+
+        this.addVideo(this.state.code, this.state.title, this.state.band, this.state.year, this.refs.lyrics_text.innerHTML, this.state.genre, this.state.type, this.state.tags);
+
+        this.setState({ code: "", title: "", band: "", year: "", genre: "", type: "", tags: [] });
+      }
+
+      e.preventDefault();
   }
 
-  // method for adding a new video
     addVideo(code, title, band, year, lyrics, genre, type, tags) {
-      lyrics = lyrics.replace(/[^A-Za-z0-9\s]/g,'');
-      lyrics = lyrics.toLowerCase();
-      lyrics = lyrics.trim();
-      lyrics = lyrics.split(" ");
+
+      Utilities.htmlTagStyleCleaner(this.refs.lyrics_text.getElementsByTagName('*'));
+
+      lyrics = Utilities.htmlStringCleanerArrayConverter(lyrics);
 
       code = code.trim();
       title = title.trim();
@@ -56,44 +58,58 @@ class AddVideo extends Component {
       year = year.trim();
 
       this.props.videos.findOne({video_code: code}, function(err, doc) {
-        if (doc) {
-          alert('That video is already in your list!');
-        } else {
-          var video = {
-            video_title: title,
-            video_code: code,
-            video_band: band,
-            video_genre: genre,
-            video_lyrics: lyrics,
-            video_year: year,
-            video_type: type,
-            video_tags: tags,
-            video_stars: "0"
-          };
-          this.props.videos.insert(video, function(err, docs) {
-            let output = "You have successfully added " + title + " to your collection.";
-              this.setState({message: output});
-          }.bind(this));
-          this.props.videos_shortterm.remove({}, { multi: true }, function (err, numRemoved) {
-            this.props.videos.find({}, function(err, entries) {
-              this.props.videos_shortterm.insert(entries, function(err, docs) {
+
+            if (doc) {
+              alert('That video is already in your list!');
+            } else {
+
+              var video = {
+                video_title: title,
+                video_code: code,
+                video_band: band,
+                video_genre: genre,
+                video_lyrics: lyrics,
+                video_lyrics_html: Utilities.removeDangerousTags(this.refs.lyrics_text.innerHTML),
+                video_year: year,
+                video_type: type,
+                video_tags: tags,
+                video_stars: "0"
+              };
+
+              this.props.videos.insert(video, function(err, docs) {
+
+                this.refs.lyrics_text.innerHTML = "";
+
+                let output = "You have successfully added " + title + " to your collection.";
+
+                this.setState({message: output});
               }.bind(this));
-            }.bind(this));
-          }.bind(this));
-        }
-      }.bind(this)); // note, the context of this class must be bound to videos.find for it to work, otherwise setState will be null
+
+              this.props.videos_shortterm.remove({}, { multi: true }, function (err, numRemoved) {
+                this.props.videos.find({}, function(err, entries) {
+                  this.props.videos_shortterm.insert(entries, function(err, docs) {
+                  }.bind(this));
+                }.bind(this));
+              }.bind(this));
+            }
+      }.bind(this));
     }
 
   addTag(e) {
     let new_tag = this.state.tag;
+
     new_tag = new_tag.replace(/[^A-Za-z0-9\s]/g,'');
+
     new_tag = new_tag.trim();
 
     if (new_tag !== "") {
+
       let tags = this.state.tags;
+
       let counter = 0;
       let tags_length = tags.length;
       for (var i = 0; i < tags_length; i++) {
+
         let nt_trimlc = new_tag;
         nt_trimlc = nt_trimlc.toLowerCase();
         nt_trimlc = nt_trimlc.trim();
@@ -106,7 +122,9 @@ class AddVideo extends Component {
       }
 
       if (counter === 0) {
+
         tags.push(new_tag);
+
         this.setState({ tags: tags, tag: "" });
       } else {
         alert("You have already entered that tag for this video.");
@@ -117,7 +135,9 @@ class AddVideo extends Component {
   }
 
   displayingTags() {
+
     let ran_num = new Date().getTime();
+
     return this.state.tags.map((video, i) => {
       return (
         <span key={"tag_span" + ran_num + i}>
@@ -128,8 +148,11 @@ class AddVideo extends Component {
   }
 
   deleteTag(i) {
+
     let state = Object.assign({}, this.state);
+
     state.tags.splice(i, 1);
+
     this.setState(state);
   }
 
@@ -165,6 +188,16 @@ class AddVideo extends Component {
     this.setState({ tag: event.target.value });
   }
 
+  handleTabKey(e) {
+
+    if (e.keyCode == 9) {
+
+      document.execCommand('insertHTML', false, '&#009');
+
+      e.preventDefault();
+    }
+  }
+
   render() {
     return (
       <div>
@@ -180,7 +213,7 @@ class AddVideo extends Component {
           <br/>
           Year: <SelectYear insertFunction={this.handle_year_Change.bind(this)} insertValue={this.state.year} minOrMax="maxtomin" appData={this.props.appData}></SelectYear>
           <br/>
-          Lyrics: <input value={this.state.lyrics} onChange={this.handle_lyrics_Change}/>
+          Lyrics: <div className="editor" ref="lyrics_text" onKeyDown={this.handleTabKey} contentEditable></div>
           <br/>
           Genre: <SelectGenre insertFunction={this.handle_genre_Change.bind(this)} insertValue={this.state.genre} appData={this.props.appData}></SelectGenre>
           <br/>

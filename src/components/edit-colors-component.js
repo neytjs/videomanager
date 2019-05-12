@@ -60,11 +60,13 @@ class EditColors extends Component {
       input_backgroundcolor: "",
       input_padding: "",
       input_hover_backgroundcolor: "",
+      editor_height: "",
       body_background_color: ""
     }
   }
 
     componentDidMount() {
+
       this.loadColors();
     }
 
@@ -124,6 +126,7 @@ class EditColors extends Component {
     let new_input_backgroundcolor = this.state.input_backgroundcolor;
     let new_input_padding = this.state.input_padding;
     let new_input_hover_backgroundcolor = this.state.input_hover_backgroundcolor;
+    let new_editor_height = this.state.editor_height;
     let new_body_background_color = this.state.body_background_color;
 
       new_div_a_textdecoration = new_div_a_textdecoration.trim();
@@ -175,6 +178,7 @@ class EditColors extends Component {
       new_input_backgroundcolor = new_input_backgroundcolor.trim();
       new_input_padding = new_input_padding.trim();
       new_input_hover_backgroundcolor = new_input_hover_backgroundcolor.trim();
+      new_editor_height = new_editor_height.trim();
       new_body_background_color = new_body_background_color.trim();
 
     this.props.colors.update({}, {
@@ -227,17 +231,21 @@ class EditColors extends Component {
         input_backgroundcolor: new_input_backgroundcolor,
         input_padding: new_input_padding,
         input_hover_backgroundcolor: new_input_hover_backgroundcolor,
+        editor_height: new_editor_height,
         body_background_color: new_body_background_color
       }
     }, function(err, doc) {
+
       window.location.reload();
     });
   }
 
-// to restore default settings
   restoreDefaults() {
+
     return new Promise(resolve => {
+
       let state = Object.assign({}, this.state);
+
       for (var current_val in state) {
         for (var default_val in color_storage) {
           if (current_val === default_val) {
@@ -245,15 +253,20 @@ class EditColors extends Component {
           }
         }
       }
+
       resolve(state);
     });
   }
 
   async restoreSubmit() {
+
     let state = await this.restoreDefaults();
+
     this.setState(state);
+
     this.handleSubmit.bind(this)();
   }
+
 
   handle_div_a_textdecoration_Change(event) {
     this.setState({ div_a_textdecoration: event.target.value });
@@ -451,6 +464,10 @@ class EditColors extends Component {
     this.setState({ input_hover_backgroundcolor: event.target.value });
   }
 
+  handle_editor_height_color_Change(event) {
+    this.setState({ editor_height: event.target.value });
+  }
+
   handle_body_background_color_Change(event) {
     this.setState({ body_background_color: event.target.value });
   }
@@ -462,56 +479,57 @@ class EditColors extends Component {
         <h3>Edit colors:</h3>
         Note, you must insert proper CSS values to have the desired effect.
         <hr/>
-        a text-decoration: <input value={this.state.div_a_textdecoration} onChange={this.handle_div_a_textdecoration_Change.bind(this)}/><br/>
-        a font-size: <input value={this.state.div_a_size} onChange={this.handle_div_a_size_Change.bind(this)}/><br/>
-        a color: <input value={this.state.div_a_color} onChange={this.handle_div_a_color_Change.bind(this)}/><br/>
-        a:link text-decoration: <input value={this.state.div_alink_textdecoration} onChange={this.handle_div_alink_textdecoration_Change.bind(this)}/><br/>
-        a:visited text-decoration: <input value={this.state.div_avisited_textdecoration} onChange={this.handle_div_avisited_textdecoration_Change.bind(this)}/><br/>
-        a:visited color: <input value={this.state.div_avisited_color} onChange={this.handle_div_avisited_color_Change.bind(this)}/><br/>
-        a:visited font-weight: <input value={this.state.div_avisited_fontweight} onChange={this.handle_div_avisited_fontweight_Change.bind(this)}/><br/>
-        a:hover color: <input value={this.state.div_ahover_color} onChange={this.handle_div_ahover_color_Change.bind(this)}/><br/>
-        a:hover text-decoration: <input value={this.state.div_ahover_testdecoration} onChange={this.handle_div_ahover_testdecoration_Change.bind(this)}/><br/>
-        a:hover cursor: <input value={this.state.div_ahover_cursor} onChange={this.handle_div_ahover_cursor_Change.bind(this)}/><br/>
-        table font-family: <input value={this.state.table_fontfamily} onChange={this.handle_table_fontfamily_Change.bind(this)}/><br/>
-        table width: <input value={this.state.table_width} onChange={this.handle_table_width_Change.bind(this)}/><br/>
-        table border-collapse: <input value={this.state.table_bordercollapse} onChange={this.handle_table_bordercollapse_Change.bind(this)}/><br/>
-        table td th font-size: <input value={this.state.table_td_th_fontsize} onChange={this.handle_table_td_th_fontsize_Change.bind(this)}/><br/>
-        table td th border: <input value={this.state.table_td_th_border} onChange={this.handle_table_td_th_border_Change.bind(this)}/><br/>
-        table td th padding: <input value={this.state.table_td_th_padding} onChange={this.handle_table_td_th_padding_Change.bind(this)}/><br/>
-        table th font-size: <input value={this.state.table_th_fontsize} onChange={this.handle_table_th_fontsize_Change.bind(this)}/><br/>
-        table th text-align: <input value={this.state.table_th_textalign} onChange={this.handle_table_th_textalign_Change.bind(this)}/><br/>
-        table th padding-top: <input value={this.state.table_th_paddingtop} onChange={this.handle_table_th_paddingtop_Change.bind(this)}/><br/>
-        table th padding-bottom: <input value={this.state.table_th_paddingbottom} onChange={this.handle_table_th_paddingbottom_Change.bind(this)}/><br/>
-        table th background-color: <input value={this.state.table_th_backgroundcolor} onChange={this.handle_table_th_backgroundcolor_Change.bind(this)}/><br/>
-        table th font color: <input value={this.state.table_th_color} onChange={this.handle_table_th_color_Change.bind(this)}/><br/>
-        table td background-color: <input value={this.state.table_td_color} onChange={this.handle_table_td_color_Change.bind(this)}/><br/>
-        ui padding: <input value={this.state.ui_padding} onChange={this.handle_ui_padding_Change.bind(this)}/><br/>
-        ui border: <input value={this.state.ui_border} onChange={this.handle_ui_border_Change.bind(this)}/><br/>
-        ui background: <input value={this.state.ui_background} onChange={this.handle_ui_background_Change.bind(this)}/><br/>
-        ui borderradius: <input value={this.state.ui_borderradius} onChange={this.handle_ui_borderradius_Change.bind(this)}/><br/>
-        button border-radius: <input value={this.state.button_borderradius} onChange={this.handle_button_borderradius_Change.bind(this)}/><br/>
-        button font-size: <input value={this.state.button_fontsize} onChange={this.handle_button_fontsize_Change.bind(this)}/><br/>
-        button background-color: <input value={this.state.button_backgroundcolor} onChange={this.handle_button_backgroundcolor_Change.bind(this)}/><br/>
-        button color: <input value={this.state.button_color} onChange={this.handle_button_color_Change.bind(this)}/><br/>
-        button border: <input value={this.state.button_border} onChange={this.handle_button_border_Change.bind(this)}/><br/>
-        button margin: <input value={this.state.button_margin} onChange={this.handle_button_margin_Change.bind(this)}/><br/>
-        button padding: <input value={this.state.button_padding} onChange={this.handle_button_padding_Change.bind(this)}/><br/>
-        button line-height: <input value={this.state.button_lineheight} onChange={this.handle_button_lineheight_Change.bind(this)}/><br/>
-        button width: <input value={this.state.button_width} onChange={this.handle_button_width_Change.bind(this)}/><br/>
-        button cursor: <input value={this.state.button_cursor} onChange={this.handle_button_cursor_Change.bind(this)}/><br/>
-        button box-shadow: <input value={this.state.button_boxshadow} onChange={this.handle_button_boxshadow_Change.bind(this)}/><br/>
-        button hover:background-color: <input value={this.state.button_hover_backgroundcolor} onChange={this.handle_button_hover_backgroundcolor_Change.bind(this)}/><br/>
-        button hover:color: <input value={this.state.button_hover_color} onChange={this.handle_button_hover_color_Change.bind(this)}/><br/>
-        button hover:border: <input value={this.state.button_hover_border} onChange={this.handle_button_hover_border_Change.bind(this)}/><br/>
-        button active:background-color: <input value={this.state.button_active_backgroundcolor} onChange={this.handle_button_active_backgroundcolor_Change.bind(this)}/><br/>
-        button active:color: <input value={this.state.button_active_color} onChange={this.handle_button_active_color_Change.bind(this)}/><br/>
-        button active:border: <input value={this.state.button_active_border} onChange={this.handle_button_active_border_Change.bind(this)}/><br/>
-        input border: <input value={this.state.input_border} onChange={this.handle_input_border_Change.bind(this)}/><br/>
-        input border-radius: <input value={this.state.input_borderradius} onChange={this.handle_input_borderradius_Change.bind(this)}/><br/>
-        input background-color: <input value={this.state.input_backgroundcolor} onChange={this.handle_input_backgroundcolor_Change.bind(this)}/><br/>
-        input padding: <input value={this.state.input_padding} onChange={this.handle_input_padding_Change.bind(this)}/><br/>
-        input hover background-color: <input value={this.state.input_hover_backgroundcolor} onChange={this.handle_input_hover_backgroundcolor_Change.bind(this)}/><br/>
-        body background color: <input value={this.state.body_background_color} onChange={this.handle_body_background_color_Change.bind(this)}/><br/>
+        a text-decoration: <input defaultValue={this.state.div_a_textdecoration} onBlur={this.handle_div_a_textdecoration_Change.bind(this)}/><br/>
+        a font-size: <input defaultValue={this.state.div_a_size} onBlur={this.handle_div_a_size_Change.bind(this)}/><br/>
+        a color: <input defaultValue={this.state.div_a_color} onBlur={this.handle_div_a_color_Change.bind(this)}/><br/>
+        a:link text-decoration: <input defaultValue={this.state.div_alink_textdecoration} onBlur={this.handle_div_alink_textdecoration_Change.bind(this)}/><br/>
+        a:visited text-decoration: <input defaultValue={this.state.div_avisited_textdecoration} onBlur={this.handle_div_avisited_textdecoration_Change.bind(this)}/><br/>
+        a:visited color: <input defaultValue={this.state.div_avisited_color} onBlur={this.handle_div_avisited_color_Change.bind(this)}/><br/>
+        a:visited font-weight: <input defaultValue={this.state.div_avisited_fontweight} onBlur={this.handle_div_avisited_fontweight_Change.bind(this)}/><br/>
+        a:hover color: <input defaultValue={this.state.div_ahover_color} onBlur={this.handle_div_ahover_color_Change.bind(this)}/><br/>
+        a:hover text-decoration: <input defaultValue={this.state.div_ahover_testdecoration} onBlur={this.handle_div_ahover_testdecoration_Change.bind(this)}/><br/>
+        a:hover cursor: <input defaultValue={this.state.div_ahover_cursor} onBlur={this.handle_div_ahover_cursor_Change.bind(this)}/><br/>
+        table font-family: <input defaultValue={this.state.table_fontfamily} onBlur={this.handle_table_fontfamily_Change.bind(this)}/><br/>
+        table width: <input defaultValue={this.state.table_width} onBlur={this.handle_table_width_Change.bind(this)}/><br/>
+        table border-collapse: <input defaultValue={this.state.table_bordercollapse} onBlur={this.handle_table_bordercollapse_Change.bind(this)}/><br/>
+        table td th font-size: <input defaultValue={this.state.table_td_th_fontsize} onBlur={this.handle_table_td_th_fontsize_Change.bind(this)}/><br/>
+        table td th border: <input defaultValue={this.state.table_td_th_border} onBlur={this.handle_table_td_th_border_Change.bind(this)}/><br/>
+        table td th padding: <input defaultValue={this.state.table_td_th_padding} onBlur={this.handle_table_td_th_padding_Change.bind(this)}/><br/>
+        table th font-size: <input defaultValue={this.state.table_th_fontsize} onBlur={this.handle_table_th_fontsize_Change.bind(this)}/><br/>
+        table th text-align: <input defaultValue={this.state.table_th_textalign} onBlur={this.handle_table_th_textalign_Change.bind(this)}/><br/>
+        table th padding-top: <input defaultValue={this.state.table_th_paddingtop} onBlur={this.handle_table_th_paddingtop_Change.bind(this)}/><br/>
+        table th padding-bottom: <input defaultValue={this.state.table_th_paddingbottom} onBlur={this.handle_table_th_paddingbottom_Change.bind(this)}/><br/>
+        table th background-color: <input defaultValue={this.state.table_th_backgroundcolor} onBlur={this.handle_table_th_backgroundcolor_Change.bind(this)}/><br/>
+        table th font color: <input defaultValue={this.state.table_th_color} onBlur={this.handle_table_th_color_Change.bind(this)}/><br/>
+        table td background-color: <input defaultValue={this.state.table_td_color} onBlur={this.handle_table_td_color_Change.bind(this)}/><br/>
+        ui padding: <input defaultValue={this.state.ui_padding} onBlur={this.handle_ui_padding_Change.bind(this)}/><br/>
+        ui border: <input defaultValue={this.state.ui_border} onBlur={this.handle_ui_border_Change.bind(this)}/><br/>
+        ui background: <input defaultValue={this.state.ui_background} onBlur={this.handle_ui_background_Change.bind(this)}/><br/>
+        ui borderradius: <input defaultValue={this.state.ui_borderradius} onBlur={this.handle_ui_borderradius_Change.bind(this)}/><br/>
+        button border-radius: <input defaultValue={this.state.button_borderradius} onBlur={this.handle_button_borderradius_Change.bind(this)}/><br/>
+        button font-size: <input defaultValue={this.state.button_fontsize} onBlur={this.handle_button_fontsize_Change.bind(this)}/><br/>
+        button background-color: <input defaultValue={this.state.button_backgroundcolor} onBlur={this.handle_button_backgroundcolor_Change.bind(this)}/><br/>
+        button color: <input defaultValue={this.state.button_color} onBlur={this.handle_button_color_Change.bind(this)}/><br/>
+        button border: <input defaultValue={this.state.button_border} onBlur={this.handle_button_border_Change.bind(this)}/><br/>
+        button margin: <input defaultValue={this.state.button_margin} onBlur={this.handle_button_margin_Change.bind(this)}/><br/>
+        button padding: <input defaultValue={this.state.button_padding} onBlur={this.handle_button_padding_Change.bind(this)}/><br/>
+        button line-height: <input defaultValue={this.state.button_lineheight} onBlur={this.handle_button_lineheight_Change.bind(this)}/><br/>
+        button width: <input defaultValue={this.state.button_width} onBlur={this.handle_button_width_Change.bind(this)}/><br/>
+        button cursor: <input defaultValue={this.state.button_cursor} onBlur={this.handle_button_cursor_Change.bind(this)}/><br/>
+        button box-shadow: <input defaultValue={this.state.button_boxshadow} onBlur={this.handle_button_boxshadow_Change.bind(this)}/><br/>
+        button hover:background-color: <input defaultValue={this.state.button_hover_backgroundcolor} onBlur={this.handle_button_hover_backgroundcolor_Change.bind(this)}/><br/>
+        button hover:color: <input defaultValue={this.state.button_hover_color} onBlur={this.handle_button_hover_color_Change.bind(this)}/><br/>
+        button hover:border: <input defaultValue={this.state.button_hover_border} onBlur={this.handle_button_hover_border_Change.bind(this)}/><br/>
+        button active:background-color: <input defaultValue={this.state.button_active_backgroundcolor} onBlur={this.handle_button_active_backgroundcolor_Change.bind(this)}/><br/>
+        button active:color: <input defaultValue={this.state.button_active_color} onBlur={this.handle_button_active_color_Change.bind(this)}/><br/>
+        button active:border: <input defaultValue={this.state.button_active_border} onBlur={this.handle_button_active_border_Change.bind(this)}/><br/>
+        input border: <input defaultValue={this.state.input_border} onBlur={this.handle_input_border_Change.bind(this)}/><br/>
+        input border-radius: <input defaultValue={this.state.input_borderradius} onBlur={this.handle_input_borderradius_Change.bind(this)}/><br/>
+        input background-color: <input defaultValue={this.state.input_backgroundcolor} onBlur={this.handle_input_backgroundcolor_Change.bind(this)}/><br/>
+        input padding: <input defaultValue={this.state.input_padding} onBlur={this.handle_input_padding_Change.bind(this)}/><br/>
+        input hover background-color: <input defaultValue={this.state.input_hover_backgroundcolor} onBlur={this.handle_input_hover_backgroundcolor_Change.bind(this)}/><br/>
+        editor height: <input defaultValue={this.state.editor_height} onBlur={this.handle_editor_height_color_Change.bind(this)}/><br/>
+        body background color: <input defaultValue={this.state.body_background_color} onBlur={this.handle_body_background_color_Change.bind(this)}/><br/>
         <button onClick={this.handleSubmit.bind(this)}>Submit</button> <button onClick={this.restoreSubmit}>Restore Defaults Colors</button>
       </div>
     )

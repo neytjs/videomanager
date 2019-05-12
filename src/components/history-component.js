@@ -21,34 +21,44 @@ class History extends Component {
     }
 
     viewAll() {
+
       this.props.history.find({}, function(err, docs) {
+
         this.setState({history: docs.sort(function(a, b) {
+
             if (b.view_date > a.view_date) {
               return 1;
             }
             if (a.view_date > b.view_date) {
               return -1;
             }
+
             return 0;
         })});
+
         this.setState({counter: this.state.history.length});
       }.bind(this));
     }
 
-    // method for clearing history
       clearHistory() {
+
         var confirm_clear = confirm("Do you really want to clear your history?");
+
         if (confirm_clear === true) {
+
           for (var i = 0, hist_length = this.state.history.length; i < hist_length; i++) {
+
             this.props.history.remove({ _id: this.state.history[i]._id }, {}, function (err, numRemoved) {
+
             });
           }
+
           this.setState({history: [], counter: 0});
         }
       }
 
-// adds a new entry to their history for every video they click on
-  addToHistory(code, title, band, genre, year, lyrics, type, tags, stars, id) {
+  addToHistory(code, title, band, genre, year, lyrics, lyrics_html, type, tags, stars, id) {
+
       var history = {
         video_code: code,
         video_title: title,
@@ -56,13 +66,16 @@ class History extends Component {
         video_genre: genre,
         video_year: year,
         video_lyrics: lyrics,
+        video_lyrics_html: lyrics_html,
         video_type: type,
         view_date: Date.now(),
         video_tags: tags,
         video_stars: stars,
         video_id: id
       };
+
       this.props.history.insert(history, function(err, doc) {
+
       });
   }
 

@@ -1,5 +1,3 @@
-// this holds the default data for video_type and video_genre, which are loaded on the applications' first start.
-// after that it is loaded from the app_db, so it can be edited and saved
 class AppData {
   static defaultAppData() {
     return {

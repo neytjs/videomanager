@@ -5,6 +5,7 @@ import SelectGenre from './select-genre-component';
 class SearchVideos extends Component {
   constructor(props) {
     super(props);
+
     this.min_default = this.props.appData.min_year;
     this.max_default = new Date().getFullYear();
 
@@ -22,11 +23,13 @@ class SearchVideos extends Component {
   }
 
   handleSubmit() {
+
     if (this.state.title === "" && this.state.band === "" && this.state.mintomax === "" && this.state.maxtomin === "" && this.state.genre === "" && this.state.lyrics === "" && this.state.tag === "" && this.state.stars === "") {
       alert("Please enter something to search for.");
     } else if ((this.state.mintomax === "" && this.state.maxtomin !== "") || (this.state.mintomax !== "" && this.state.maxtomin === "")) {
       alert("You must select both a start year and end year to search for.");
     } else {
+
       let mintomax = this.state.mintomax;
       let maxtomin = this.state.maxtomin;
       let ifyears = true;
@@ -49,13 +52,17 @@ class SearchVideos extends Component {
   }
 
   resetSearch() {
+
     this.setState({ title: "", band: "", mintomax: "", maxtomin: "", genre: "", lyrics: "", tag: "", stars: "" });
   }
 
   createYears(range) {
+
     let minimum_year = this.min_default;
+
     if (range === "mintomax") {
       let numbers = [""];
+
       for (var i = minimum_year, current_year = this.max_default; i <= current_year; i++) {
         numbers.push(i);
       }

@@ -2,7 +2,9 @@ import React, {Component} from 'react';
 
 class Stars extends Component {
   generateStars(amount) {
+
     let stars = [];
+
     for (var i = 0; i < 5; i++) {
       if (i < amount) {
         stars.push("★");

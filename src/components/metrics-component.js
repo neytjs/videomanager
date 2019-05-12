@@ -26,8 +26,11 @@ class Metrics extends Component {
   }
 
   loadVideosAndMetrics() {
+
     this.props.videos_shortterm.find({}, function(err, docs) {
+
       this.setState({videos: docs, total_songs: docs.length});
+
       this.calculateMpGenre();
       this.calculateMpYear();
       this.calculateMpBand();
@@ -36,6 +39,7 @@ class Metrics extends Component {
   }
 
   calculateMpGenre() {
+
     if (this.state.videos.length > 0) {
       let occurrences = Utilities.occurrenceCounter(this.state.videos, "video_genre");
 
@@ -48,15 +52,18 @@ class Metrics extends Component {
   }
 
   calculateMpYear() {
+
     if (this.state.videos.length > 0) {
       let occurrences = Utilities.occurrenceCounter(this.state.videos, "video_year");
 
       occurrences.sort(function(a, b) { return b.quantity - a.quantity; });
 
       let occurrences_length = occurrences.length;
+
       let max = 10;
 
       if (occurrences_length > max) {
+
         occurrences.splice(max);
       }
 
@@ -71,6 +78,7 @@ class Metrics extends Component {
       }
 
       var ctx = this.refs.yearsBarChar;
+
       var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
       var myLineChart = new Chart(ctx, {
@@ -91,6 +99,7 @@ class Metrics extends Component {
               ticks: {
                 beginAtZero: true,
                 userCallback: function(label, index, labels) {
+
                        if (Math.floor(label) === label) {
                            return label;
                        }
@@ -114,14 +123,18 @@ class Metrics extends Component {
   }
 
   calculateMpBand() {
+
     if (this.state.videos.length > 0) {
       let occurrences = Utilities.occurrenceCounter(this.state.videos, "video_band");
 
       occurrences.sort(function(a, b) { return b.quantity - a.quantity; });
+
         let occurrences_length = occurrences.length;
+
         let max = 10;
 
         if (occurrences_length > max) {
+
           occurrences.splice(max);
         }
 
@@ -136,6 +149,7 @@ class Metrics extends Component {
         }
 
         var ctx = this.refs.bandsBarChar;
+
         var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
         var myLineChart = new Chart(ctx, {
@@ -156,6 +170,7 @@ class Metrics extends Component {
                 ticks: {
                   beginAtZero: true,
                   userCallback: function(label, index, labels) {
+
                          if (Math.floor(label) === label) {
                              return label;
                          }
@@ -179,14 +194,18 @@ class Metrics extends Component {
   }
 
   displayGenrePieChart() {
+
     if (this.state.videos.length > 0) {
       let occurrences = Utilities.occurrenceCounter(this.state.videos, "video_genre");
 
       occurrences.sort(function(a, b) { return b.quantity - a.quantity; });
+
         let occurrences_length = occurrences.length;
+
         let max = 10;
 
         if (occurrences_length > max) {
+
           occurrences.splice(max);
         }
 
@@ -201,6 +220,7 @@ class Metrics extends Component {
         }
 
         var ctx = this.refs.genrePieChar;
+
         var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
         var myLineChart = new Chart(ctx, {

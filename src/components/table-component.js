@@ -11,16 +11,19 @@ class Table extends Component {
   }
 
   viewVideoFromHistory(video) {
+
     remote.getGlobal('history_viewer').video = video;
+
     hashHistory.push('/');
   }
 
     mapVideos() {
+
       if (this.props.table === "main") {
         return this.props.videos.map((video, i) => {
           return (
             <tr key={video.video_code + Math.floor(Math.random() * (10000))}>
-              <td><a onClick={() => { this.props.displayVideo(video, video._id, i); this.props.addToHistory(video.video_code, video.video_title, video.video_band, video.video_genre, video.video_year, video.video_lyrics, video.video_type, video.video_tags, video.video_stars, video._id)} }>{video.video_title}</a></td>
+              <td><a onClick={() => { this.props.displayVideo(video, video._id, i); this.props.addToHistory(video.video_code, video.video_title, video.video_band, video.video_genre, video.video_year, video.video_lyrics, video.video_lyrics_html, video.video_type, video.video_tags, video.video_stars, video._id)} }>{video.video_title}</a></td>
               <td>{video.video_band}</td>
               <td>{video.video_year}</td>
               <td><Stars starsAmount={video.video_stars}></Stars></td>
@@ -33,7 +36,7 @@ class Table extends Component {
           let date = new Date(video.view_date);
           return (
             <tr key={video.view_date + Math.floor(Math.random() * (10000))}>
-              <td><a onClick={() => { this.viewVideoFromHistory(video); this.props.addToHistory(video.video_code, video.video_title, video.video_band, video.video_genre, video.video_year, video.video_lyrics, video.video_type, video.video_tags, video.video_stars, video.video_id) } }>{video.video_title}</a></td>
+              <td><a onClick={() => { this.viewVideoFromHistory(video); this.props.addToHistory(video.video_code, video.video_title, video.video_band, video.video_genre, video.video_year, video.video_lyrics, video.video_lyrics_html, video.video_type, video.video_tags, video.video_stars, video.video_id) } }>{video.video_title}</a></td>
               <td>{video.video_band}</td>
               <td>{date.toString()}</td>
             </tr>
@@ -43,6 +46,7 @@ class Table extends Component {
     }
 
     tableHead() {
+
       if (this.props.table === "main") {
         return (
           <thead>

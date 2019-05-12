@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
+import ReactHtmlParser from 'react-html-parser';
 import VideoUpdate from './video-update-component';
 import DeleteVideo from './delete-video-component';
 import DeSelect from './deselect-video-component';
@@ -9,6 +10,7 @@ class VideoDetails extends Component {
   constructor(props) {
     super(props);
     this.loadStars = this.loadStars.bind(this);
+
     this.min_default = this.props.appData.min_year;
     this.max_default = new Date().getFullYear();
 
@@ -24,6 +26,7 @@ class VideoDetails extends Component {
   }
 
   componentDidUpdate(previousProps, previousState) {
+
     if (previousProps.videoId !== this.props.videoId) {
       this.setState({ viewing_lyrics: false });
       this.loadStars();
@@ -36,6 +39,7 @@ class VideoDetails extends Component {
   }
 
   viewHideLyrics() {
+
     if (this.state.viewing_lyrics === false) {
       this.setState({ viewing_lyrics: true });
     } else {
@@ -44,6 +48,7 @@ class VideoDetails extends Component {
   }
 
   displayingTags() {
+
     let ran_num = new Date().getTime();
 
     return this.props.displayVideo.video_tags.map((video, i) => {
@@ -56,14 +61,17 @@ class VideoDetails extends Component {
   }
 
   runTagSearch(tag) {
+
     this.props.searchVideos("", "", this.min_default, this.max_default, "", "", false, tag, "");
   }
 
   runBandSearch(band) {
+
     this.props.searchVideos("", band, this.min_default, this.max_default, "", "", false, "", "");
   }
 
   editVideo() {
+
     if (this.state.editing_video === false) {
       this.setState({ editing_video: true });
     } else {
@@ -82,8 +90,11 @@ class VideoDetails extends Component {
   }
 
   starChange(star) {
+
     let stars = star + 1;
+
     stars = stars.toString();
+
     this.setState({stars: stars});
     this.props.assignStar(this.props.videoId, stars);
   }
@@ -111,7 +122,7 @@ class VideoDetails extends Component {
           }
           </div>
           {
-            (viewing_lyrics === true && this.props.displayVideo.video_lyrics[0] !== "") ? <div><b>Lyrics:</b><br/> {this.props.displayVideo.video_lyrics.join(" ")}</div> : ""
+            (viewing_lyrics === true && this.props.displayVideo.video_lyrics[0] !== "") ? <div><b>Lyrics:</b><br/> {ReactHtmlParser(this.props.displayVideo.video_lyrics_html)}</div> : ""
           }
         </div>
       )

@@ -1,4 +1,3 @@
-// this just holds the base data for all our CSS, the default settings that are loaded into the colors.db the first time they start the app
 class ColorData {
   static color_storage() {
     return {
@@ -58,6 +57,8 @@ class ColorData {
       input_padding: "3px",
 
       input_hover_backgroundcolor: "#C2FEC2",
+
+      editor_height: "100px",
 
       body_background_color: "#F1EECF"
     }

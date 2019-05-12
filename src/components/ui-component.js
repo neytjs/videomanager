@@ -21,7 +21,9 @@ class Ui extends Component {
     }
   }
 
+
   leavingMainVideoList() {
+
     remote.getGlobal('history_viewer').video = {};
   }
 
