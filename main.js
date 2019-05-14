@@ -1,3 +1,8 @@
+/*
+main.js is our main process, the entry point to the Electron app. It controls the life of the application, from start to close.
+https://electronjs.org/docs/glossary#main-process
+*/
+
 const electron = require('electron');
 const app = electron.app;
 const ipcMain = electron.ipcMain;
@@ -20,7 +25,7 @@ app.on('ready', () => {
 	mainWindow.loadURL(url);
 	mainWindow.maximize();
 	mainWindow.setMenu(null);
-//	mainWindow.webContents.openDevTools();
+//	mainWindow.webContents.openDevTools(); // uncomment for testing
 });
 
 let darwin = process.platform === 'darwin';
