@@ -1,3 +1,8 @@
+/*
+The search-video subcomponent provides the user an interface for querying data in the videos.db
+NeDB database to return a specific subset of videos.
+*/
+
 import React, {Component} from 'react';
 import SelectYear from './select-year-component';
 import SelectGenre from './select-genre-component';

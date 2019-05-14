@@ -1,3 +1,10 @@
+/*
+video-list-component is the app's most important subcomponent and holds methods organizing the 'CRUD'
+aspects of the app, letting the user insert, read, update and delete data stored in the main videos.db
+NeDB database that holds the data for their videos list. It also organizes the layout of the video list,
+so that the appropriate subcomponent will load if they want to conduct a search or view a video.
+*/
+
 import React, {Component} from 'react';
 import VideoDetails from './video-details.component';
 import Ui from './ui-component';

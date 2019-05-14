@@ -1,9 +1,12 @@
+/*
+The video-details subcomponent provides the user an interface for displaying data in the videos.db
+NeDB database for each individual video.
+*/
+
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import ReactHtmlParser from 'react-html-parser';
 import VideoUpdate from './video-update-component';
-import DeleteVideo from './delete-video-component';
-import DeSelect from './deselect-video-component';
 import RateStars from './rate-stars-component.js';
 
 class VideoDetails extends Component {
@@ -106,7 +109,7 @@ class VideoDetails extends Component {
       if (editing_video === false) {
       return (
         <div>
-          <h3>{this.props.displayVideo.video_title} (<a onClick={this.runBandSearch.bind(this, "\"" + this.props.displayVideo.video_band + "\"")}>{this.props.displayVideo.video_band}</a>) <DeSelect deSelect={this.props.deSelect}></DeSelect> <DeleteVideo videoId={this.props.videoId} deleteVideo={this.props.deleteVideo}></DeleteVideo></h3>
+          <h3>{this.props.displayVideo.video_title} (<a onClick={this.runBandSearch.bind(this, "\"" + this.props.displayVideo.video_band + "\"")}>{this.props.displayVideo.video_band}</a>) <button onClick={() => this.props.deSelect()}>Hide</button> <button onClick={() => this.props.deleteVideo(this.props.videoId)}>Delete</button></h3>
           <div>
               <RateStars starsAmount={this.state.stars} starChange={this.starChange.bind(this)}></RateStars>
           </div>

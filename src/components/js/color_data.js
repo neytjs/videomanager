@@ -1,3 +1,9 @@
+/*
+This class contains a single method that returns an object holding the default CSS for the
+application's visual display that is inserted into their colors.db NeDB database during their first
+launch of the videomanager application.
+*/
+
 class ColorData {
   static color_storage() {
     return {

@@ -1,3 +1,12 @@
+/*
+The Utilities class contains many important utilties methods that are called at various points
+throughout the application. They help manipulate string data that is used in conducting video
+searches, for insert/update queries, and for converting into objects/arrays for further use.
+The methods also assist in counting the number of occurrences of values in arrays, comparing
+two sets of arrays' values, and shuffling values inside arrays. This small utilities library
+helps in cleaning, screening, and analyzing much of the application's data.
+*/
+
 class Utilities {
 
   static arrayComparer(search_lyrics, songs_lyrics, property_name) {
@@ -160,7 +169,7 @@ class Utilities {
           return true;
       });
       return filtering;
-    }
+  }
 
     static occurrenceCounter(the_array, test_value) {
       if (the_array.length > 0) {
@@ -322,7 +331,6 @@ class Utilities {
   }
 
   static htmlTagStyleCleaner(tags) {
-
     for (var i = 0; i < tags.length; i++) {
 
       if (tags[i].style.backgroundColor) {
@@ -339,6 +347,10 @@ class Utilities {
 
       if (tags[i].style.fontSize) {
         tags[i].style.fontSize = '1rem';
+      }
+
+      if (tags[i].style.overflow) {
+        tags[i].style.overflow = 'visible';
       }
     }
 

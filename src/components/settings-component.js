@@ -1,3 +1,8 @@
+/*
+The settings component provides the user an interface for updating data in the app_data.db
+NeDB database that holds the core data for the application's settings.
+*/
+
 import React, {Component} from 'react';
 import Ui from './ui-component';
 

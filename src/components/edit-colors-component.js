@@ -1,3 +1,8 @@
+/*
+The edit-colors component provides the user an interface for updating data in the colors.db
+NeDB database that holds the CSS data for the application's visual display preferences.
+*/
+
 import React, {Component} from 'react';
 import Ui from './ui-component';
 import ColorData from './js/color_data.js';

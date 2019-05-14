@@ -1,3 +1,7 @@
+/*
+The ui subcomponent provides the user with a menu bar to navigate the application.
+*/
+
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import SearchVideos from './search-video-component';

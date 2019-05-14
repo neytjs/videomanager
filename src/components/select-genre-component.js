@@ -1,3 +1,8 @@
+/*
+This is a minor subcomponent for providing the user an interface for selecting a video genre for
+video searchs based upon their application settings data stored in the app_data.db NeDB database.
+*/
+
 import React, {Component} from 'react';
 
 class SelectGenre extends Component {

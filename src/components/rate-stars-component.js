@@ -1,3 +1,8 @@
+/*
+This is a minor subcomponent for providing the user an interface for updating the stars ranking
+property for a given video stored in their videos.db NeDB database.
+*/
+
 import React, {Component} from 'react';
 
 class RateStars extends Component {

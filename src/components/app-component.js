@@ -1,3 +1,12 @@
+/*
+app-component is our central React component. It organizes the layout of the React app into an 'index' and
+initiates several key tasks that allow the app to function as intended. It sets routes letting the user
+navigate through the application, so that the correct subcomponent will load when necessary. It also loads
+default and persisted data so that the correct videos, viewing history, and preferences data is available.
+In addition, application-wide CSS styling is held at this level so that it can be wrapped around all the
+subcomponents.
+*/
+
 import React, {Component} from 'react';
 import {Router, Route, Switch, Link} from 'react-router-dom';
 import styled from 'styled-components';
@@ -40,14 +49,11 @@ class App extends Component {
 
   getAppData() {
     return new Promise(resolve => {
-
       app_data.findOne({}, function(err, dat) {
-
         if (dat) {
           resolve(dat);
         } else {
           app_data.insert(defaultAppData, function(err, docs) {
-
             resolve(docs);
           });
         }
@@ -57,14 +63,11 @@ class App extends Component {
 
   getColors() {
     return new Promise(resolve => {
-
       colors.findOne({}, function(err, cols) {
-
         if (cols) {
           resolve(cols);
         } else {
           colors.insert(color_storage, function(err, docs) {
-
             resolve(docs);
           });
         }
@@ -74,11 +77,9 @@ class App extends Component {
 
   getVideos() {
     return new Promise(resolve => {
-
       videos.find({}, function(err, entries) {
         videos_shortterm.insert(entries, function(err, docs) {
           let result = true;
-
           resolve(result);
         });
       });
@@ -86,7 +87,6 @@ class App extends Component {
   }
 
   async componentDidMount() {
-
     let colors = await this.getColors();
 
     let app_data = await this.getAppData();
@@ -101,7 +101,6 @@ class App extends Component {
   }
 
   setRoutes() {
-
     if (this.state.loaded === false) {
       const loadingApp = () => <div>Loading...</div>
       return (
@@ -248,6 +247,10 @@ class App extends Component {
       .editor:focus {
         outline: none;
       }
+
+      .onpasteholder {
+        display: none;
+      }         
     `;
     return (
       <Router history={hashHistory}>

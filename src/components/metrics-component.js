@@ -1,3 +1,8 @@
+/*
+The metrics component provides the user an interface for viewing analysis of their videos.db
+NeDB database data in a chart form using Chart.js.
+*/
+
 import React, {Component} from 'react';
 import Ui from './ui-component';
 import Utilities from './js/utilities.js';

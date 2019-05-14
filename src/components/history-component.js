@@ -1,3 +1,8 @@
+/*
+The history component provides the user an interface for viewing and deleting data in the
+history.db NeDB database that holds their viewing history.
+*/
+
 import React, {Component} from 'react';
 import Ui from './ui-component';
 import Table from './table-component';

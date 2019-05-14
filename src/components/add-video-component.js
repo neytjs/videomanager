@@ -1,3 +1,8 @@
+/*
+The add-video subcomponent provides the user an interface for inserting data into the videos.db
+NeDB database that holds their videos data.
+*/
+
 import React, {Component} from 'react';
 import Utilities from './js/utilities.js';
 import Ui from './ui-component';
@@ -47,8 +52,6 @@ class AddVideo extends Component {
   }
 
     addVideo(code, title, band, year, lyrics, genre, type, tags) {
-
-      Utilities.htmlTagStyleCleaner(this.refs.lyrics_text.getElementsByTagName('*'));
 
       lyrics = Utilities.htmlStringCleanerArrayConverter(lyrics);
 
@@ -126,7 +129,7 @@ class AddVideo extends Component {
         tags.push(new_tag);
 
         this.setState({ tags: tags, tag: "" });
-      } else {
+      } else { // otherwise, tell them
         alert("You have already entered that tag for this video.");
       }
     }
@@ -198,6 +201,20 @@ class AddVideo extends Component {
     }
   }
 
+  handlePaste(event) {
+
+    event.stopPropagation();
+    event.preventDefault();
+
+    let clipboardData = event.clipboardData || window.clipboardData;
+    let pastedData = clipboardData.getData('text/html');
+
+    this.refs.onpasteholder.innerHTML = pastedData;
+    Utilities.htmlTagStyleCleaner(this.refs.onpasteholder.getElementsByTagName('*'));
+
+    this.refs.lyrics_text.innerHTML = this.refs.onpasteholder.innerHTML;
+  }
+
   render() {
     return (
       <div>
@@ -213,7 +230,8 @@ class AddVideo extends Component {
           <br/>
           Year: <SelectYear insertFunction={this.handle_year_Change.bind(this)} insertValue={this.state.year} minOrMax="maxtomin" appData={this.props.appData}></SelectYear>
           <br/>
-          Lyrics: <div className="editor" ref="lyrics_text" onKeyDown={this.handleTabKey} contentEditable></div>
+          Lyrics: <div className="editor" ref="lyrics_text" onKeyDown={this.handleTabKey} onPaste={this.handlePaste.bind(this)} contentEditable></div>
+          <div className="onpasteholder" ref="onpasteholder"></div>
           <br/>
           Genre: <SelectGenre insertFunction={this.handle_genre_Change.bind(this)} insertValue={this.state.genre} appData={this.props.appData}></SelectGenre>
           <br/>

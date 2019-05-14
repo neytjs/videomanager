@@ -1,3 +1,9 @@
+/*
+This class contains a single method that returns an object holding the default application's settings
+data that is inserted into their app_data.db NeDB database during their first launch of the videomanager
+application.
+*/
+
 class AppData {
   static defaultAppData() {
     return {

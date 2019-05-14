@@ -1,3 +1,8 @@
+/*
+The table subcomponent organizes the display of data returned for both the video-list and
+history components.
+*/
+
 import React, {Component} from 'react';
 const remote = window.require('electron').remote;
 import { createHashHistory } from 'history';

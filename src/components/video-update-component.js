@@ -1,3 +1,8 @@
+/*
+The video-update subcomponent provides the user an interface for updating data in the videos.db
+NeDB database that holds their videos data.
+*/
+
 import React, {Component} from 'react';
 import Utilities from './js/utilities.js';
 import SelectYear from './select-year-component';
@@ -40,8 +45,6 @@ class VideoUpdate extends Component {
       if (this.state.video_code === "" || this.state.video_title === "" || this.state.video_band === "" || this.state.video_year === "" || this.state.video_genre === "" || this.state.video_type === "") {
         alert("A new title, band, year, genre, type, and video code are required.");
       } else {
-
-        Utilities.htmlTagStyleCleaner(this.refs.lyrics_text.getElementsByTagName('*'));
 
         this.props.updateVideo(this.state.video_title, this.state.video_code, this.state.video_band, this.state.video_year, Utilities.removeDangerousTags(this.refs.lyrics_text.innerHTML), this.state.video_genre, this.props.displayVideo.video_code, this.state.video_type, this.state.video_tags, this.state.video_stars);
 
@@ -87,6 +90,20 @@ class VideoUpdate extends Component {
 
       e.preventDefault();
     }
+  }
+
+  handlePaste(event) {
+
+    event.stopPropagation();
+    event.preventDefault();
+
+    let clipboardData = event.clipboardData || window.clipboardData;
+    let pastedData = clipboardData.getData('text/html');
+
+    this.refs.onpasteholder.innerHTML = pastedData;
+    Utilities.htmlTagStyleCleaner(this.refs.onpasteholder.getElementsByTagName('*'));
+
+    this.refs.lyrics_text.innerHTML = this.refs.onpasteholder.innerHTML;
   }
 
   displayingEditableTags() {
@@ -144,7 +161,7 @@ class VideoUpdate extends Component {
         this.setState(state);
 
         this.setState({tag: ""});
-      } else {
+      } else { // otherwise, tell them
         alert("You have already entered that tag for this video.");
       }
     }
@@ -164,7 +181,8 @@ class VideoUpdate extends Component {
           <br/>
           New year: <SelectYear insertFunction={this.handleYearChange.bind(this)} insertValue={this.state.video_year} minimumYear="1960" minOrMax="maxtomin" appData={this.props.appData}></SelectYear>
           <br/>
-          New lyrics: <div className="editor" ref="lyrics_text" onKeyDown={this.handleTabKey} contentEditable></div>
+          New lyrics: <div className="editor" ref="lyrics_text" onKeyDown={this.handleTabKey} onPaste={this.handlePaste.bind(this)} contentEditable></div>
+          <div className="onpasteholder" ref="onpasteholder"></div>
           <br/>
           New genre: <SelectGenre insertFunction={this.handleGenreChange.bind(this)} insertValue={this.state.video_genre} appData={this.props.appData}></SelectGenre>
           <br/>
