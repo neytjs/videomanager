@@ -129,7 +129,7 @@ class AddVideo extends Component {
         tags.push(new_tag);
 
         this.setState({ tags: tags, tag: "" });
-      } else { // otherwise, tell them
+      } else {
         alert("You have already entered that tag for this video.");
       }
     }
