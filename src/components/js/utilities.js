@@ -1,5 +1,5 @@
 /*
-The Utilities class contains many important utilities methods that are called at various points
+The Utilities class contains many important utilties methods that are called at various points
 throughout the application. They help manipulate string data that is used in conducting video
 searches, for insert/update queries, and for converting into objects/arrays for further use.
 The methods also assist in counting the number of occurrences of values in arrays, comparing
@@ -171,10 +171,16 @@ class Utilities {
       return filtering;
   }
 
-    static occurrenceCounter(the_array, test_value) {
+    static occurrenceCounter(the_array, test_value, count_property) {
+
+      var arguments_length = arguments.length;
+
       if (the_array.length > 0) {
+
         var occurrences = [];
+
         var counter = 0;
+
         var new_array = [];
 
         for (var i = 0; i < the_array.length; i++) {
@@ -194,6 +200,10 @@ class Utilities {
           var last_occurrence_entry = occurrences[last_occurrence_element][test_value];
 
           occurrences[last_occurrence_element].quantity = 0;
+          if (arguments_length > 2) {
+            var last_occurrence_count_property = parseInt(occurrences[last_occurrence_element][count_property]);
+            occurrences[last_occurrence_element].count_property = [];
+          }
 
           var occur_counter = 0;
 
@@ -203,6 +213,10 @@ class Utilities {
               occurrences[i].quantity = occurrences[i].quantity + 1;
 
               occur_counter = occur_counter + 1;
+              if (arguments_length > 2) {
+
+                occurrences[i].count_property.push(last_occurrence_count_property);
+              }
             }
           }
 
@@ -210,7 +224,9 @@ class Utilities {
             occurrences.splice(last_occurrence_element, 1);
           }
 
+
           counter = counter + 1;
+
 
           if (counter < nwarlen) {
             recursiveCounter();
