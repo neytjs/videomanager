@@ -1,5 +1,5 @@
 /*
-The Utilities class contains many important utilties methods that are called at various points
+The Utilities class contains many important utilities methods that are called at various points
 throughout the application. They help manipulate string data that is used in conducting video
 searches, for insert/update queries, and for converting into objects/arrays for further use.
 The methods also assist in counting the number of occurrences of values in arrays, comparing
