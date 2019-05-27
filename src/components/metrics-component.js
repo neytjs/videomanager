@@ -22,6 +22,7 @@ class Metrics extends Component {
       mp_genre: "",
       total_songs: 0,
       enough_stars: false,
+      enough_five_stars: false,
       backgroundColors: ['#ff6666', '#00cc00', '#4d4dff', '#ffff00', '#a64dff', '#ffa366', '#ff80b3', '#00ffbf', '#88cc00', '#e6004c'],
       borderColors: ['#ff0000', '#006600', '#0000cc', '#e6e600', '#6600cc', '#ff6600', '#ff0066', '#00b386', '#669900', '#990033'],
     }
@@ -222,7 +223,7 @@ class Metrics extends Component {
       }
 
       if (tabulated.length >= minimum_quantity) {
-        this.setState({enough_stars: true});
+        this.setState({enough_five_stars: true});
 
         tabulated.sort(function(a, b) { return b.rating - a.rating; });
 
@@ -455,7 +456,7 @@ class Metrics extends Component {
     let charts_container = {
       float: 'left'
     };
-    const { mp_genre, videos, enough_stars } = this.state;
+    const { mp_genre, videos, enough_stars, enough_five_stars } = this.state;
     return (
       <div>
         <Ui currentLoc={"metrics"} colorData={this.props.colorData}></Ui>
@@ -474,11 +475,10 @@ class Metrics extends Component {
             <h3>Most popular bands(s):</h3>
             <canvas ref="bandsBarChar" style={canvas_styling}></canvas>
             <hr/>
-            { enough_stars === true ? <div><h3>Bands with most five star videos:</h3>
-            <canvas ref="fiveStarsBarChar" style={canvas_styling}></canvas>
-            <hr/><h3>Highest rated bands(s):</h3>
-            <canvas ref="ratingsBarChar" style={canvas_styling}></canvas>
-            <hr/></div> : "" }
+            { enough_five_stars === true ? <div><h3>Bands with most five star videos:</h3>
+            <canvas ref="fiveStarsBarChar" style={canvas_styling}></canvas><hr/></div> : "" }
+            { enough_stars === true ? <div><h3>Highest rated bands(s):</h3>
+            <canvas ref="ratingsBarChar" style={canvas_styling}></canvas><hr/></div> : "" }
             <h3>Genre Pie Chart:</h3>
             <canvas ref="genrePieChar" style={canvas_styling}></canvas>
             <canvas ref="genreCanvas" width="400" height="400"></canvas>
