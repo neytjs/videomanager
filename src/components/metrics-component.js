@@ -215,7 +215,10 @@ class Metrics extends Component {
             rating = rating + 1;
           }
         }
-        tabulated.push({ label: occurrences[i].video_band, rating: rating });
+
+        if (rating > 0) {
+          tabulated.push({ label: occurrences[i].video_band, rating: rating });
+        }
       }
 
       if (tabulated.length >= minimum_quantity) {
