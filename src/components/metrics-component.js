@@ -40,6 +40,7 @@ class Metrics extends Component {
 
       this.calculateMpGenre();
       this.calculateMpYear();
+      this.calculateMpDecade();
       this.calculateMpBand();
       this.calculateMpFiveStars();
       this.calculateMpStars();
@@ -87,6 +88,145 @@ class Metrics extends Component {
       }
 
       var ctx = this.refs.yearsBarChar;
+
+      var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
+
+      var myLineChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'number of videos',
+            data: quantities,
+            backgroundColor: colors.first_array,
+            borderColor: colors.second_array,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            yAxes: [{
+              ticks: {
+                beginAtZero: true,
+                userCallback: function(label, index, labels) {
+
+                       if (Math.floor(label) === label) {
+                           return label;
+                       }
+
+                }
+              }
+            }],
+            xAxes: [{
+              barPercentage: 0.5,
+              barThickness: 'flex',
+              maxBarThickness: 25,
+              minBarLength: 2,
+              gridLines: {
+                offsetGridLines: true
+              }
+            }]
+          }
+        }
+      });
+    }
+  }
+
+  calculateMpDecade() {
+
+    if (this.state.videos.length > 0) {
+      let occurrences = this.state.videos;
+      let tabulated = [
+        { label: "1890s", quantity: 0 },
+        { label: "1900s", quantity: 0 },
+        { label: "1910s", quantity: 0 },
+        { label: "1920s", quantity: 0 },
+        { label: "1930s", quantity: 0 },
+        { label: "1940s", quantity: 0 },
+        { label: "1950s", quantity: 0 },
+        { label: "1960s", quantity: 0 },
+        { label: "1970s", quantity: 0 },
+        { label: "1980s", quantity: 0 },
+        { label: "1990s", quantity: 0 },
+        { label: "2000s", quantity: 0 },
+        { label: "2010s", quantity: 0 },
+        { label: "2020s", quantity: 0 },
+        { label: "2030s", quantity: 0 },
+        { label: "2040s", quantity: 0 },
+        { label: "2050s", quantity: 0 },
+        { label: "2060s", quantity: 0 }
+      ];
+
+      for (var i = 0, length = occurrences.length; i < length; i++) {
+        if (parseInt(occurrences[i].video_year) >= 2060 && parseInt(occurrences[i].video_year) <= 2069) {
+          tabulated[17].quantity = tabulated[17].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 2050 && parseInt(occurrences[i].video_year) <= 2059) {
+          tabulated[16].quantity = tabulated[16].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 2040 && parseInt(occurrences[i].video_year) <= 2049) {
+          tabulated[15].quantity = tabulated[15].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 2030 && parseInt(occurrences[i].video_year) <= 2039) {
+          tabulated[14].quantity = tabulated[14].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 2020 && parseInt(occurrences[i].video_year) <= 2029) {
+          tabulated[13].quantity = tabulated[13].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 2010 && parseInt(occurrences[i].video_year) <= 2019) {
+          tabulated[12].quantity = tabulated[12].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 2000 && parseInt(occurrences[i].video_year) <= 2009) {
+          tabulated[11].quantity = tabulated[11].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1990 && parseInt(occurrences[i].video_year) <= 1999) {
+          tabulated[10].quantity = tabulated[10].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1980 && parseInt(occurrences[i].video_year) <= 1989) {
+          tabulated[9].quantity = tabulated[9].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1970 && parseInt(occurrences[i].video_year) <= 1979) {
+          tabulated[8].quantity = tabulated[8].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1960 && parseInt(occurrences[i].video_year) <= 1969) {
+          tabulated[7].quantity = tabulated[7].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1950 && parseInt(occurrences[i].video_year) <= 1959) {
+          tabulated[6].quantity = tabulated[6].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1940 && parseInt(occurrences[i].video_year) <= 1949) {
+          tabulated[5].quantity = tabulated[5].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1930 && parseInt(occurrences[i].video_year) <= 1939) {
+          tabulated[4].quantity = tabulated[4].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1920 && parseInt(occurrences[i].video_year) <= 1929) {
+          tabulated[3].quantity = tabulated[3].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1910 && parseInt(occurrences[i].video_year) <= 1919) {
+          tabulated[2].quantity = tabulated[2].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1910 && parseInt(occurrences[i].video_year) <= 1919) {
+          tabulated[1].quantity = tabulated[1].quantity + 1;
+        } else if (parseInt(occurrences[i].video_year) >= 1890 && parseInt(occurrences[i].video_year) <= 1899) {
+          tabulated[0].quantity = tabulated[0].quantity + 1;
+        }
+      }
+
+
+      tabulated.sort(function(a, b) { return b.quantity - a.quantity; });
+
+
+      let tabulated_length = tabulated.length;
+
+      let max = 10;
+
+      if (tabulated_length > max) {
+
+        tabulated.splice(max);
+      }
+
+      tabulated = tabulated.filter(element => element.quantity > 0);
+
+
+      let labels = [];
+      for (var i = 0, l_length = tabulated.length; i < l_length; i++) {
+        labels.push(tabulated[i].label);
+      }
+
+
+      let quantities = [];
+      for (var i = 0, q_length = tabulated.length; i < q_length; i++) {
+        quantities.push(tabulated[i].quantity);
+      }
+
+
+      var ctx = this.refs.decadesBarChar;
+
 
       var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -472,6 +612,9 @@ class Metrics extends Component {
             <h3>Most popular year(s):</h3>
             <canvas ref="yearsBarChar" style={canvas_styling}></canvas>
             <hr/>
+            <h3>Most popular decade(s):</h3>
+            <canvas ref="decadesBarChar" style={canvas_styling}></canvas>
+            <hr/>            
             <h3>Most popular bands(s):</h3>
             <canvas ref="bandsBarChar" style={canvas_styling}></canvas>
             <hr/>
