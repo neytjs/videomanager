@@ -368,6 +368,18 @@ class Utilities {
       if (tags[i].style.overflow) {
         tags[i].style.overflow = 'visible';
       }
+
+      if (tags[i].style.lineHeight) {
+        tags[i].style.lineHeight = 'normal';
+      }
+
+      if (tags[i].style.maxHeight) {
+        tags[i].style.maxHeight = 'none';
+      }
+
+      if (tags[i].style.margin) {
+        tags[i].style.margin = '0';
+      }           
     }
 
     return tags;
