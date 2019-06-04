@@ -5,7 +5,7 @@ NeDB database data in a chart form using Chart.js.
 
 import React, {Component} from 'react';
 import Ui from './ui-component';
-import Utilities from './js/utilities.js'; // importing so we can use our occurrenceCounter and splicer methods for the search feature
+import Utilities from './js/utilities.js';
 import Chart from 'chart.js';
 
 class Metrics extends Component {
