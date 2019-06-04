@@ -5,7 +5,7 @@ NeDB database data in a chart form using Chart.js.
 
 import React, {Component} from 'react';
 import Ui from './ui-component';
-import Utilities from './js/utilities.js';
+import Utilities from './js/utilities.js'; // importing so we can use our occurrenceCounter and splicer methods for the search feature
 import Chart from 'chart.js';
 
 class Metrics extends Component {
@@ -19,12 +19,14 @@ class Metrics extends Component {
 
     this.state = {
       videos: [],
+      history: [],
       mp_genre: "",
       total_songs: 0,
       enough_stars: false,
       enough_five_stars: false,
-      backgroundColors: ['#ff6666', '#00cc00', '#4d4dff', '#ffff00', '#a64dff', '#ffa366', '#ff80b3', '#00ffbf', '#88cc00', '#e6004c'],
-      borderColors: ['#ff0000', '#006600', '#0000cc', '#e6e600', '#6600cc', '#ff6600', '#ff0066', '#00b386', '#669900', '#990033'],
+      enough_history: false,
+      backgroundColors: ['#ff6666', '#00cc00', '#4d4dff', '#ffff00', '#a64dff', '#ffa366', '#ff80b3', '#00ffbf', '#88cc00', '#e6004c', '#c2c2a3', '#d2a679', '#ffdb4d', '#ff80ff', '#cccccc', '#00cc44', '#ff531a', '#ff0000'],
+      borderColors: ['#ff0000', '#006600', '#0000cc', '#e6e600', '#6600cc', '#ff6600', '#ff0066', '#00b386', '#669900', '#990033', '#999966', '#996633', '#e6b800', '#ff00ff', '#999999', '#009933', '#cc3300', '#b30000'],
     }
   }
 
@@ -45,6 +47,17 @@ class Metrics extends Component {
       this.calculateMpFiveStars();
       this.calculateMpStars();
       this.displayGenrePieChart();
+
+
+
+this.props.history.find({}, function(err, docs) {
+
+  this.setState({history: docs});
+  this.calculateGenreLineChart();
+}.bind(this));
+
+
+
     }.bind(this));
   }
 
@@ -104,6 +117,10 @@ class Metrics extends Component {
           }]
         },
         options: {
+          title: {
+  					display: true,
+  					text: 'Most popular years:'
+          },
           scales: {
             yAxes: [{
               ticks: {
@@ -197,9 +214,7 @@ class Metrics extends Component {
         }
       }
 
-
       tabulated.sort(function(a, b) { return b.quantity - a.quantity; });
-
 
       let tabulated_length = tabulated.length;
 
@@ -212,21 +227,17 @@ class Metrics extends Component {
 
       tabulated = tabulated.filter(element => element.quantity > 0);
 
-
       let labels = [];
       for (var i = 0, l_length = tabulated.length; i < l_length; i++) {
         labels.push(tabulated[i].label);
       }
-
 
       let quantities = [];
       for (var i = 0, q_length = tabulated.length; i < q_length; i++) {
         quantities.push(tabulated[i].quantity);
       }
 
-
       var ctx = this.refs.decadesBarChar;
-
 
       var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -243,6 +254,10 @@ class Metrics extends Component {
           }]
         },
         options: {
+          title: {
+  					display: true,
+  					text: 'Most popular decades:'
+          },
           scales: {
             yAxes: [{
               ticks: {
@@ -314,6 +329,10 @@ class Metrics extends Component {
             }]
           },
           options: {
+            title: {
+    					display: true,
+    					text: 'Most popular band:'
+            },
             scales: {
               yAxes: [{
                 ticks: {
@@ -376,21 +395,17 @@ class Metrics extends Component {
             tabulated.splice(max);
           }
 
-
           let labels = [];
           for (var i = 0, l_length = tabulated.length; i < l_length; i++) {
             labels.push(tabulated[i].label);
           }
-
 
           let ratings = [];
           for (var i = 0, q_length = tabulated.length; i < q_length; i++) {
             ratings.push(tabulated[i].rating);
           }
 
-
           var ctx = this.refs.fiveStarsBarChar;
-
 
           var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -407,6 +422,10 @@ class Metrics extends Component {
               }]
             },
             options: {
+              title: {
+      					display: true,
+      					text: 'Bands with most five star videos:'
+              },
               scales: {
                 yAxes: [{
                   ticks: {
@@ -470,21 +489,17 @@ class Metrics extends Component {
           let suggestedMin = (tabulated[tabulated.length - 1].rating - 1) > 0 ? Math.floor(tabulated[tabulated.length - 1].rating - 1) : 0;
           let suggestedMax = (tabulated[0].rating + 1) < 5 ? Math.ceil(tabulated[0].rating + 1) : 5;
 
-
           let labels = [];
           for (var i = 0, l_length = tabulated.length; i < l_length; i++) {
             labels.push(tabulated[i].label);
           }
-
 
           let ratings = [];
           for (var i = 0, q_length = tabulated.length; i < q_length; i++) {
             ratings.push(tabulated[i].rating);
           }
 
-
           var ctx = this.refs.ratingsBarChar;
-
 
           var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -501,6 +516,10 @@ class Metrics extends Component {
               }]
             },
             options: {
+              title: {
+      					display: true,
+      					text: 'Highest rated bands:'
+              },
               scales: {
                 yAxes: [{
                   ticks: {
@@ -531,6 +550,218 @@ class Metrics extends Component {
     }
   }
 
+  calculateGenreLineChart() {
+    if (this.state.history.length >= 2) {
+
+      this.setState({enough_history: true});
+
+      var x_axis = [];
+      var days = [];
+      var x_y_data = [];
+      var unique_days = [];
+      var max_days = 28;
+
+      function getStartDay(ms) {
+        var start = new Date(ms);
+        return start.setHours(0, 0, 0, 0);
+      }
+
+      function getOldestNewest(history) {
+        history.sort(function(a, b){ return a.view_date - b.view_date; });
+        return [history[0].view_date, history[history.length - 1].view_date];
+      }
+
+      var labels = getOldestNewest(this.state.history);
+
+      function countUniqueDays(history) {
+        var days = {};
+        for (var i = 0, length = history.length; i < length; i++) {
+          days[getStartDay(history[i].view_date)] = "";
+        }
+        for (var day in days) {
+          unique_days.push(day);
+        }
+      }
+
+      countUniqueDays(this.state.history);
+
+      if (unique_days.length > max_days) {
+
+        var newest = labels[1];
+        var new_history = [];
+
+        for (var i = 0, length = this.state.history.length; i < length; i++) {
+          if (this.state.history[i].view_date >= (newest - (86400000 * max_days))) {
+            new_history.push(this.state.history[i]);
+          }
+        }
+
+        this.setState({history: new_history});
+
+        labels = getOldestNewest(this.state.history);
+      }
+
+      function calcX(history) {
+        for (var i = 0, length = history.length; i < length; i++) {
+
+          if (x_axis.length === 0) {
+            x_axis.push({ video_genre: history[i].video_genre, x: [getStartDay(history[i].view_date)] });
+          } else {
+
+            var match = false;
+            var j_elm = -1;
+            for (var j = 0, jlength = x_axis.length; j < jlength; j++) {
+
+              if (x_axis[j].video_genre === history[i].video_genre) {
+                match = true;
+                j_elm = j;
+              }
+            }
+
+            if (match === true) {
+              x_axis[j_elm].x.push(getStartDay(history[i].view_date));
+            } else {
+
+              x_axis.push({ video_genre: history[i].video_genre, x: [getStartDay(history[i].view_date)] })
+            }
+          }
+        }
+      }
+
+      calcX(this.state.history);
+
+
+      function daysTabulator(x_axis) {
+        for (var i = 0, length = x_axis.length; i < length; i++) {
+          for (var j = 0, jlength = x_axis[i].x.length; j < jlength; j++) {
+
+            if (days.length === 0) {
+              days.push({ day: x_axis[i].x[j], video_genre: x_axis[i].video_genre, tallies: [], day_total: [] });
+            } else {
+
+              var match = false;
+              var k_elm = -1;
+              for (var k = 0, klength = days.length; k < klength; k++) {
+
+                if (days[k].day === x_axis[i].x[j] && days[k].video_genre === x_axis[i].video_genre) {
+                  match = true;
+                  k_elm = j;
+                }
+              }
+
+              if (match === false) {
+
+                days.push({ day: x_axis[i].x[j], video_genre: x_axis[i].video_genre, tallies: [], day_total: [] });
+              }
+            }
+          }
+        }
+
+        for (var i = 0, length = x_axis.length; i < length; i++) {
+          for (var j = 0, jlength = x_axis[i].x.length; j < jlength; j++) {
+            for (var k = 0, klength = days.length; k < klength; k++) {
+
+              if (x_axis[i].x[j] === days[k].day) {
+                days[k].day_total.push(1);
+
+                if (days[k].video_genre === x_axis[i].video_genre) {
+                  days[k].tallies.push(1);
+                }
+              }
+            }
+          }
+        }
+
+        days.sort(function(a, b){return a.day - b.day});
+      }
+
+      daysTabulator(x_axis);
+
+
+      function creatXY(days) {
+
+        var genres = {};
+        var genre_types = [];
+        for (var i = 0, length = days.length; i < length; i++) {
+          genres[days[i].video_genre] = "";
+        }
+        for (var genre in genres) {
+          genre_types.push({video_genre: genre, data: []});
+        }
+
+        for (var i = 0, length = days.length; i < length; i++) {
+          for (var j = 0, jlength = genre_types.length; j < jlength; j++) {
+            if (days[i].video_genre === genre_types[j].video_genre) {
+
+              genre_types[j].data.push({x: days[i].day, y: ((days[i].tallies.length / days[i].day_total.length) * 100).toFixed(1)});
+            }
+          }
+        }
+
+        return genre_types;
+      }
+
+      x_y_data = creatXY(days);
+
+      var ctx = this.refs.genreLineChar;
+
+      var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
+
+      function generateChartData() {
+        var data = [];
+        for (var i = 0, length = x_y_data.length; i < length; i++) {
+          data.push({
+            label: x_y_data[i].video_genre,
+            data: x_y_data[i].data,
+            backgroundColor: colors.first_array[i],
+            borderColor: colors.second_array[i],
+            borderWidth: 3,
+            pointBackgroundColor: colors.first_array[i],
+            pointBorderColor: colors.second_array[i],
+            pointBorderWidth: 1,
+            fill: false,
+            tension: 0,
+            showLine: true
+          });
+        }
+        return data;
+      }
+
+      var data = generateChartData();
+
+      var myLineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: data
+        },
+        options: {
+          scales: {
+              xAxes: [{
+                  type: 'time'
+              }]
+          },
+
+          title: {
+  					display: true,
+  					text: 'Genre viewing over the past ' + max_days + ' days:'
+          },
+          tooltips: {
+            callbacks: {
+              title: function(tooltipItem, data) {
+
+                return new Date(tooltipItem[0].label).toLocaleDateString("en-US", {year: "numeric", month: "long", day: "numeric"});
+              },
+              label: function(tooltipItem, data) {
+
+                return data.datasets[tooltipItem.datasetIndex].label + ': ' + tooltipItem.value + '%';
+              }
+            }
+          }
+        }
+      });
+    }
+  }
 
   displayGenrePieChart() {
 
@@ -575,6 +806,10 @@ class Metrics extends Component {
             }]
           },
           options: {
+            title: {
+    					display: true,
+    					text: 'Genre Pie Chart:'
+            },
             tooltips: {
               callbacks: {
                 label: function(tooltipItem, data) {
@@ -596,7 +831,7 @@ class Metrics extends Component {
     let charts_container = {
       float: 'left'
     };
-    const { mp_genre, videos, enough_stars, enough_five_stars } = this.state;
+    const { mp_genre, videos, enough_stars, enough_five_stars, enough_history } = this.state;
     return (
       <div>
         <Ui currentLoc={"metrics"} colorData={this.props.colorData}></Ui>
@@ -609,20 +844,19 @@ class Metrics extends Component {
             <h3>Most popular genre:</h3>
             {mp_genre}
             <hr/>
-            <h3>Most popular year(s):</h3>
             <canvas ref="yearsBarChar" style={canvas_styling}></canvas>
             <hr/>
-            <h3>Most popular decade(s):</h3>
             <canvas ref="decadesBarChar" style={canvas_styling}></canvas>
-            <hr/>            
-            <h3>Most popular bands(s):</h3>
+            <hr/>
             <canvas ref="bandsBarChar" style={canvas_styling}></canvas>
             <hr/>
-            { enough_five_stars === true ? <div><h3>Bands with most five star videos:</h3>
+            { enough_five_stars === true ? <div>
             <canvas ref="fiveStarsBarChar" style={canvas_styling}></canvas><hr/></div> : "" }
-            { enough_stars === true ? <div><h3>Highest rated bands(s):</h3>
+            { enough_stars === true ? <div>
             <canvas ref="ratingsBarChar" style={canvas_styling}></canvas><hr/></div> : "" }
-            <h3>Genre Pie Chart:</h3>
+            { enough_history === true ? <div>
+            <canvas ref="genreLineChar" style={canvas_styling}></canvas>
+            <hr/></div> : "" }
             <canvas ref="genrePieChar" style={canvas_styling}></canvas>
             <canvas ref="genreCanvas" width="400" height="400"></canvas>
           </div>
