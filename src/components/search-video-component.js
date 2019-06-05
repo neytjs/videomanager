@@ -13,6 +13,7 @@ class SearchVideos extends Component {
 
     this.min_default = this.props.appData.min_year;
     this.max_default = new Date().getFullYear();
+    this.pressEnter = this.pressEnter.bind(this);    
 
     this.state = {
       title: "",
@@ -24,6 +25,20 @@ class SearchVideos extends Component {
       maxtomin: "",
       tag: "",
       stars: ""
+    }
+  }
+
+  componentDidMount() {
+    document.addEventListener("keydown", this.pressEnter, false);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.pressEnter, false);
+  }
+
+  pressEnter(event) {
+    if (event.keyCode === 13) {
+      this.handleSubmit();
     }
   }
 
