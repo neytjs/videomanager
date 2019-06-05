@@ -73,6 +73,10 @@ class VideoDetails extends Component {
     this.props.searchVideos("", band, this.min_default, this.max_default, "", "", false, "", "");
   }
 
+  cancelEdit() {
+    this.setState({ editing_video: false });
+  }
+
   editVideo() {
 
     if (this.state.editing_video === false) {
@@ -131,7 +135,7 @@ class VideoDetails extends Component {
       )
       } else {
         return (
-          <VideoUpdate videoId={this.props.videoId} updateVideo={this.props.updateVideo} displayVideo={this.props.displayVideo} editStatus={this.editVideo.bind(this)} appData={this.props.appData}></VideoUpdate>
+          <VideoUpdate videoId={this.props.videoId} updateVideo={this.props.updateVideo} displayVideo={this.props.displayVideo} editStatus={this.editVideo.bind(this)} cancelEdit={this.cancelEdit.bind(this)} appData={this.props.appData}></VideoUpdate>
         )
       }
     } else {
