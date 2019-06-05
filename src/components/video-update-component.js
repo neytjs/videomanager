@@ -165,7 +165,7 @@ class VideoUpdate extends Component {
         this.setState(state);
 
         this.setState({tag: ""});
-      } else { // otherwise, tell them
+      } else {
         alert("You have already entered that tag for this video.");
       }
     }
