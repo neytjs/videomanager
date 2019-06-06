@@ -23,6 +23,7 @@ class AddVideo extends Component {
     this.handle_genre_Change = this.handle_genre_Change.bind(this);
     this.handle_type_Change = this.handle_type_Change.bind(this);
     this.handle_tags_Change = this.handle_tags_Change.bind(this);
+    this.pressEnter = this.pressEnter.bind(this);
 
     this.state = {
       message: "",
@@ -37,7 +38,21 @@ class AddVideo extends Component {
     }
   }
 
-  handleSubmit(e) {
+  componentDidMount() {
+    document.addEventListener("keydown", this.pressEnter, false);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.pressEnter, false);
+  }
+
+  pressEnter(event) {
+    if (event.keyCode === 13) {
+      this.handleSubmit();
+    }
+  }
+
+  handleSubmit() {
 
       if (this.state.code === "" || this.state.title === "" || this.state.band === "" || this.state.year === "" || this.state.genre === "" || this.state.type === "") {
         alert("A title, band, year, genre, type, and video code are required.");
@@ -45,20 +60,23 @@ class AddVideo extends Component {
 
         this.addVideo(this.state.code, this.state.title, this.state.band, this.state.year, this.refs.lyrics_text.innerHTML, this.state.genre, this.state.type, this.state.tags);
 
-        this.setState({ code: "", title: "", band: "", year: "", genre: "", type: "", tags: [] });
-      }
+        this.setState({ code: "", title: "", band: "", year: "", genre: "", type: "", tag: "", tags: [] });
 
-      e.preventDefault();
+        this.refs.lyrics_text.innerHTML = "";
+      }
   }
+
 
     addVideo(code, title, band, year, lyrics, genre, type, tags) {
 
       lyrics = Utilities.htmlStringCleanerArrayConverter(lyrics);
 
+
       code = code.trim();
       title = title.trim();
       band = band.trim();
       year = year.trim();
+
 
       this.props.videos.findOne({video_code: code}, function(err, doc) {
 
@@ -98,6 +116,7 @@ class AddVideo extends Component {
       }.bind(this));
     }
 
+
   addTag(e) {
     let new_tag = this.state.tag;
 
@@ -133,9 +152,8 @@ class AddVideo extends Component {
         alert("You have already entered that tag for this video.");
       }
     }
-
-    e.preventDefault();
   }
+
 
   displayingTags() {
 
@@ -149,6 +167,7 @@ class AddVideo extends Component {
       )
     });
   }
+
 
   deleteTag(i) {
 
@@ -191,6 +210,7 @@ class AddVideo extends Component {
     this.setState({ tag: event.target.value });
   }
 
+
   handleTabKey(e) {
 
     if (e.keyCode == 9) {
@@ -205,6 +225,7 @@ class AddVideo extends Component {
 
     event.stopPropagation();
     event.preventDefault();
+
 
     let clipboardData = event.clipboardData || window.clipboardData;
     let pastedData = clipboardData.getData('text/html');
@@ -221,7 +242,6 @@ class AddVideo extends Component {
         <Ui currentLoc={"add"}></Ui>
         <hr />
         <h3>Add a video:</h3>
-        <form>
           Title: <input value={this.state.title} onChange={this.handle_title_Change}/>
           <br/>
           Video Code: <input value={this.state.code} onChange={this.handle_code_Change}/>
@@ -240,7 +260,6 @@ class AddVideo extends Component {
           Tags: <input value={this.state.tag} onChange={this.handle_tags_Change}/> <button onClick={this.addTag.bind(this)}>Add Tag</button> {this.displayingTags()}
           <br/>
           <button onClick={this.handleSubmit.bind(this)}>Submit</button>
-        </form>
         {this.state.message}
       </div>
     )
