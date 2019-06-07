@@ -90,7 +90,7 @@ class VideoList extends Component {
         return 0;
       })});
 
-      this.setState({counter: this.state.videos.length, total_videos: this.state.videos.length, search: ""});
+      this.setState({counter: this.state.videos.length, total_videos: this.state.videos.length, search: "", sorted: ""});
 
       this.loadVideoFromHistory();
     }.bind(this));
