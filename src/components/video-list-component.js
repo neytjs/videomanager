@@ -40,13 +40,16 @@ class VideoList extends Component {
       hidden: 0,
       search: "",
       searchRef: React.createRef(),
+      sorted: "",
       displaying: false
     };
   }
 
+
   componentDidMount() {
     this.viewAll();
   }
+
 
     loadVideoFromHistory() {
 
@@ -62,6 +65,7 @@ class VideoList extends Component {
         }
       }
     }
+
 
   viewAll() {
 
@@ -92,6 +96,7 @@ class VideoList extends Component {
     }.bind(this));
   }
 
+
   displayVideo(vid, id, el) {
 
     this.setState({selected_video: vid, video_id: id, video_el: el, displaying: true});
@@ -99,11 +104,13 @@ class VideoList extends Component {
     window.scrollTo(0, 0);
   }
 
+
   searchVideos(video_title, band, mintomax, maxtomin, genre, lyrics, ifyears, tag, stars) {
 
     let search_title = Utilities.customSplit(video_title);
     let search_band = Utilities.customSplit(band);
     let search_lyrics = Utilities.customSplit(lyrics);
+
 
     var tags = [];
 
@@ -111,10 +118,13 @@ class VideoList extends Component {
       tags.push(tag);
     }
 
+
      var genre_regex = new RegExp(genre, 'i');
      var stars_regex = new RegExp(stars, 'i');
 
+
      var query = { video_genre: { $regex: genre_regex }, video_stars: { $regex: stars_regex } };
+
 
      this.props.videos_shortterm.find(query, function(err, docs) {
 
@@ -167,6 +177,7 @@ class VideoList extends Component {
      }.bind(this));
   }
 
+
   searchString(video_title, band, mintomax, maxtomin, genre, lyrics, ifyears, tag, stars) {
     let search_string = "Searching videos ";
     let search_array = [];
@@ -199,9 +210,11 @@ class VideoList extends Component {
       search_array.push("stars");
     }
 
+
     let counter = 0;
 
     let recursions = search_array.length;
+
 
     function innerRecursiveFunction() {
 
@@ -249,17 +262,21 @@ class VideoList extends Component {
         search_string += ".";
       }
 
+
       counter = counter + 1;
+
 
       if (counter < recursions) {
         innerRecursiveFunction();
       }
     }
 
+
     innerRecursiveFunction();
 
     this.setState({search: search_string})
   }
+
 
   deleteVideo(video_id) {
 
@@ -295,6 +312,7 @@ class VideoList extends Component {
     }
   }
 
+
   hideVideo(elm, video_code) {
 
       let state = Object.assign({}, this.state);
@@ -309,6 +327,7 @@ class VideoList extends Component {
 
       this.setState({counter: (this.state.videos.length + this.state.hidden_videos.length)});
   }
+
 
   showHidden() {
 
@@ -348,6 +367,29 @@ class VideoList extends Component {
       this.setState({counter: this.state.videos.length});
   }
 
+
+  sortVideos() {
+    let state = Object.assign({}, this.state);
+    if (state.sorted === "bsn_a") {
+      this.orderBySong("ASC");
+    } else if (state.sorted === "bsn_d") {
+      this.orderBySong("DESC");
+    } else if (state.sorted === "") {
+      this.orderByBand("ASC");
+    } else if (state.sorted === "bb_d") {
+      this.orderByBand("DESC");
+    } else if (state.sorted === "by_a") {
+      this.orderByYear("ASC");
+    } else if (state.sorted === "by_d") {
+      this.orderByYear("DESC");
+    } else if (state.sorted === "bs_a") {
+      this.orderByStars("ASC");
+    } else if (state.sorted === "bs_d") {
+      this.orderByStars("DESC");
+    }
+  }
+
+
   assignStar(video_id, star) {
 
     this.props.videos.update({_id: video_id}, {$set:{video_stars: star}}, function(err, doc) {
@@ -377,7 +419,10 @@ class VideoList extends Component {
     }
 
     this.setState(state);
+
+    this.sortVideos();
   }
+
 
   updateVideo(new_video_title, new_video_code, new_band, new_year, new_lyrics, new_genre, old_video_code, new_type, new_tags, new_stars) {
 
@@ -385,10 +430,12 @@ class VideoList extends Component {
 
     new_lyrics = Utilities.htmlStringCleanerArrayConverter(new_lyrics);
 
+
     new_video_code = new_video_code.trim();
     new_video_title = new_video_title.trim();
     new_band = new_band.trim();
     new_year = new_year.trim();
+
 
     this.props.videos.update({video_code: old_video_code}, {$set:{video_code: new_video_code, video_title: new_video_title, video_band: new_band, video_year: new_year, video_lyrics: new_lyrics, video_lyrics_html: new_lyrics_html, video_genre: new_genre, video_type: new_type, video_tags: new_tags}}, function(err, doc) {
 
@@ -397,6 +444,7 @@ class VideoList extends Component {
     this.props.videos_shortterm.update({video_code: old_video_code}, {$set:{video_code: new_video_code, video_title: new_video_title, video_band: new_band, video_year: new_year, video_lyrics: new_lyrics, video_lyrics_html: new_lyrics_html, video_genre: new_genre, video_type: new_type, video_tags: new_tags}}, function(err, doc) {
 
     });
+
 
     let state = Object.assign({}, this.state);
     let el = state.video_el;
@@ -426,24 +474,7 @@ class VideoList extends Component {
       state.videos[el].video_tags = new_tags;
       state.videos[el].video_stars = new_stars;
 
-      state.videos = state.videos.sort(function(a, b) {
-
-          if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-            return 1;
-          }
-          if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-            return -1;
-          }
-
-          if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-            return 1;
-          }
-          if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-            return -1;
-          }
-
-          return 0;
-      });
+      this.sortVideos();
 
       this.setState({counter: this.state.videos.length});
     }
@@ -462,6 +493,7 @@ class VideoList extends Component {
     this.setState(state);
   }
 
+
   deSelect() {
 
     let state = Object.assign({}, this.state);
@@ -470,6 +502,7 @@ class VideoList extends Component {
 
     this.setState(state);
   }
+
 
   addToHistory(code, title, band, genre, year, lyrics, lyrics_html, type, tags, stars, id) {
 
@@ -494,7 +527,9 @@ class VideoList extends Component {
       });
   }
 
+
   orderBySong(ascdesc) {
+    var sorted = ascdesc === "ASC" ? "bsn_a" : "bsn_d";
     this.setState({videos: this.state.videos.sort(function(a, b) {
       if (ascdesc === "ASC") {
 
@@ -531,10 +566,12 @@ class VideoList extends Component {
 
         return 0;
       }
-    })});
+    }), sorted: sorted});
   }
 
+
   orderByBand(ascdesc) {
+    var sorted = (ascdesc === "ASC" ? "" : "bb_d");
     this.setState({videos: this.state.videos.sort(function(a, b) {
       if (ascdesc === "ASC") {
 
@@ -571,10 +608,12 @@ class VideoList extends Component {
 
         return 0;
       }
-    })});
+    }), sorted: sorted});
   }
 
+
   orderByYear(ascdesc) {
+    var sorted = (ascdesc === "ASC" ? "by_a" : "by_d");
     this.setState({videos: this.state.videos.sort(function(a, b) {
       if (ascdesc === "ASC") {
 
@@ -625,10 +664,12 @@ class VideoList extends Component {
 
         return 0;
       }
-    })});
+    }), sorted: sorted});
   }
 
+
   orderByStars(ascdesc) {
+    var sorted = (ascdesc === "ASC" ? "bs_a" : "bs_d");
     this.setState({videos: this.state.videos.sort(function(a, b) {
       if (ascdesc === "ASC") {
 
@@ -679,8 +720,9 @@ class VideoList extends Component {
 
         return 0;
       }
-    })});
+    }), sorted: sorted});
   }
+
 
   render() {
     const { show_search, show_add, counter, hidden, search, displaying, colors, searchRef } = this.state;
