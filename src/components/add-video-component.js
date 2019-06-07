@@ -3,6 +3,7 @@ The add-video subcomponent provides the user an interface for inserting data int
 NeDB database that holds their videos data.
 */
 
+
 import React, {Component} from 'react';
 import Utilities from './js/utilities.js';
 import Ui from './ui-component';
@@ -24,6 +25,8 @@ class AddVideo extends Component {
     this.handle_type_Change = this.handle_type_Change.bind(this);
     this.handle_tags_Change = this.handle_tags_Change.bind(this);
     this.pressEnter = this.pressEnter.bind(this);
+    this.onpasteholder = React.createRef();
+    this.tag = React.createRef();
 
     this.state = {
       message: "",
@@ -34,7 +37,8 @@ class AddVideo extends Component {
       genre: "",
       type: "",
       tag: "",
-      tags: []
+      tags: [],
+      focused: false
     }
   }
 
@@ -46,8 +50,16 @@ class AddVideo extends Component {
     document.removeEventListener("keydown", this.pressEnter, false);
   }
 
+  focusOn() {
+    this.setState({focused: true});
+  }
+
+  focusOut() {
+    this.setState({focused: false});
+  }
+
   pressEnter(event) {
-    if (event.keyCode === 13) {
+    if (event.keyCode === 13 && this.state.focused === false) {
       this.handleSubmit();
     }
   }
@@ -58,11 +70,11 @@ class AddVideo extends Component {
         alert("A title, band, year, genre, type, and video code are required.");
       } else {
 
-        this.addVideo(this.state.code, this.state.title, this.state.band, this.state.year, this.refs.lyrics_text.innerHTML, this.state.genre, this.state.type, this.state.tags);
+        this.addVideo(this.state.code, this.state.title, this.state.band, this.state.year, this.lyrics_text.innerHTML, this.state.genre, this.state.type, this.state.tags);
 
         this.setState({ code: "", title: "", band: "", year: "", genre: "", type: "", tag: "", tags: [] });
 
-        this.refs.lyrics_text.innerHTML = "";
+        this.lyrics_text.innerHTML = "";
       }
   }
 
@@ -90,7 +102,7 @@ class AddVideo extends Component {
                 video_band: band,
                 video_genre: genre,
                 video_lyrics: lyrics,
-                video_lyrics_html: Utilities.removeDangerousTags(this.refs.lyrics_text.innerHTML),
+                video_lyrics_html: Utilities.removeDangerousTags(this.lyrics_text.innerHTML),
                 video_year: year,
                 video_type: type,
                 video_tags: tags,
@@ -99,7 +111,7 @@ class AddVideo extends Component {
 
               this.props.videos.insert(video, function(err, docs) {
 
-                this.refs.lyrics_text.innerHTML = "";
+                this.lyrics_text.innerHTML = "";
 
                 let output = "You have successfully added " + title + " to your collection.";
 
@@ -230,10 +242,10 @@ class AddVideo extends Component {
     let clipboardData = event.clipboardData || window.clipboardData;
     let pastedData = clipboardData.getData('text/html');
 
-    this.refs.onpasteholder.innerHTML = pastedData;
-    Utilities.htmlTagStyleCleaner(this.refs.onpasteholder.getElementsByTagName('*'));
+    this.onpasteholder.innerHTML = pastedData;
+    Utilities.htmlTagStyleCleaner(this.onpasteholder.getElementsByTagName('*'));
 
-    this.refs.lyrics_text.innerHTML = this.refs.onpasteholder.innerHTML;
+    this.lyrics_text.innerHTML = this.onpasteholder.innerHTML;
   }
 
   render() {
@@ -250,8 +262,8 @@ class AddVideo extends Component {
           <br/>
           Year: <SelectYear insertFunction={this.handle_year_Change.bind(this)} insertValue={this.state.year} minOrMax="maxtomin" appData={this.props.appData}></SelectYear>
           <br/>
-          Lyrics: <div className="editor" ref="lyrics_text" onKeyDown={this.handleTabKey} onPaste={this.handlePaste.bind(this)} contentEditable></div>
-          <div className="onpasteholder" ref="onpasteholder"></div>
+          Lyrics: <div className="editor" ref={lyrics_text => this.lyrics_text = lyrics_text} onKeyDown={this.handleTabKey} onPaste={this.handlePaste.bind(this)} onFocus={this.focusOn.bind(this)} onBlur={this.focusOut.bind(this)} contentEditable></div>
+          <div className="onpasteholder" ref={onpasteholder => this.onpasteholder = onpasteholder}></div>
           <br/>
           Genre: <SelectGenre insertFunction={this.handle_genre_Change.bind(this)} insertValue={this.state.genre} appData={this.props.appData}></SelectGenre>
           <br/>

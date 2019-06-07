@@ -12,6 +12,12 @@ import SelectType from './select-type-component';
 class VideoUpdate extends Component {
   constructor(props) {
     super(props);
+    this.video_title = React.createRef();
+    this.video_code = React.createRef();
+    this.video_band = React.createRef();
+    this.lyrics_text = React.createRef();
+    this.onpasteholder = React.createRef();
+    this.tag = React.createRef();
 
     this.state = {
       video_title: props.displayVideo.video_title,
@@ -28,20 +34,21 @@ class VideoUpdate extends Component {
   }
 
   componentDidMount() {
-    this.refs.lyrics_text.innerHTML = this.state.video_lyrics_html;
+    this.lyrics_text.innerHTML = this.state.video_lyrics_html;
   }
+
 
   componentWillReceiveProps(nextProps) {
 
     if (nextProps.displayVideo.video_title !== this.state.video_title || nextProps.displayVideo.video_code !== this.state.video_code || nextProps.displayVideo.video_band !== this.state.video_band || nextProps.displayVideo.video_year !== this.state.video_year || nextProps.displayVideo.video_lyrics_html !== this.state.video_lyrics_html || nextProps.displayVideo.video_genre !== this.state.video_genre || nextProps.displayVideo.video_type !== this.state.video_type  || nextProps.displayVideo.video_tags !== this.state.video_tags) {
       this.setState({ video_title: nextProps.displayVideo.video_title, video_code: nextProps.displayVideo.video_code, video_band: nextProps.displayVideo.video_band, video_year: nextProps.displayVideo.video_year, video_lyrics_html: nextProps.displayVideo.video_lyrics_html, video_genre: nextProps.displayVideo.video_genre, video_type: nextProps.displayVideo.video_type, video_tags: nextProps.displayVideo.video_tags }, () => {
 
-        this.refs.lyrics_text.innerHTML = this.state.video_lyrics_html;
+        this.lyrics_text.innerHTML = this.state.video_lyrics_html;
 
-        this.refs.video_title.value = this.state.video_title;
-        this.refs.video_code.value = this.state.video_code;
-        this.refs.video_band.value = this.state.video_band;
-        this.refs.tag.value = "";
+        this.video_title.value = this.state.video_title;
+        this.video_code.value = this.state.video_code;
+        this.video_band.value = this.state.video_band;
+        this.tag.value = "";
       });
     }
   }
@@ -52,11 +59,12 @@ class VideoUpdate extends Component {
       alert("A new title, band, year, genre, type, and video code are required.");
     } else {
 
-      this.props.updateVideo(this.state.video_title, this.state.video_code, this.state.video_band, this.state.video_year, Utilities.removeDangerousTags(this.refs.lyrics_text.innerHTML), this.state.video_genre, this.props.displayVideo.video_code, this.state.video_type, this.state.video_tags, this.state.video_stars);
+      this.props.updateVideo(this.state.video_title, this.state.video_code, this.state.video_band, this.state.video_year, Utilities.removeDangerousTags(this.lyrics_text.innerHTML), this.state.video_genre, this.props.displayVideo.video_code, this.state.video_type, this.state.video_tags, this.state.video_stars);
 
       this.props.editStatus();
     }
   }
+
 
   handleTitleChange(event) {
     this.setState({ video_title: event.target.value });
@@ -86,9 +94,10 @@ class VideoUpdate extends Component {
     this.setState({ tag: event.target.value });
   }
 
+
   handleTabKey(e) {
 
-    if (e.keyCode == 9) {
+    if (e.keyCode === 9) {
 
       document.execCommand('insertHTML', false, '&#009');
 
@@ -101,14 +110,16 @@ class VideoUpdate extends Component {
     event.stopPropagation();
     event.preventDefault();
 
+
     let clipboardData = event.clipboardData || window.clipboardData;
     let pastedData = clipboardData.getData('text/html');
 
-    this.refs.onpasteholder.innerHTML = pastedData;
-    Utilities.htmlTagStyleCleaner(this.refs.onpasteholder.getElementsByTagName('*'));
+    this.onpasteholder.innerHTML = pastedData;
+    Utilities.htmlTagStyleCleaner(this.onpasteholder.getElementsByTagName('*'));
 
-    this.refs.lyrics_text.innerHTML = this.refs.onpasteholder.innerHTML;
+    this.lyrics_text.innerHTML = this.onpasteholder.innerHTML;
   }
+
 
   displayingEditableTags() {
 
@@ -123,6 +134,7 @@ class VideoUpdate extends Component {
     });
   }
 
+
   deleteTag(i) {
 
     let state = Object.assign({}, this.state);
@@ -132,8 +144,9 @@ class VideoUpdate extends Component {
     this.setState(state);
   }
 
+
   addTag(e) {
-    let new_tag = this.refs.tag.value;
+    let new_tag = this.tag.value;
 
     new_tag = new_tag.replace(/[^A-Za-z0-9\s]/g,'');
 
@@ -174,22 +187,22 @@ class VideoUpdate extends Component {
   render() {
     return (
       <div>
-        New title: <input type="text" ref="video_title" defaultValue={this.state.video_title} onBlur={this.handleTitleChange.bind(this)} />
+        New title: <input type="text" ref={video_title => this.video_title = video_title} defaultValue={this.state.video_title} onBlur={this.handleTitleChange.bind(this)} />
         <br/>
-        New video code: <input type="text" ref="video_code" defaultValue={this.state.video_code} onBlur={this.handleCodeChange.bind(this)} />
+        New video code: <input type="text" ref={video_code => this.video_code = video_code} defaultValue={this.state.video_code} onBlur={this.handleCodeChange.bind(this)} />
         <br/>
-        New band: <input type="text" ref="video_band" defaultValue={this.state.video_band} onBlur={this.handleBandChange.bind(this)} />
+        New band: <input type="text" ref={video_band => this.video_band = video_band} defaultValue={this.state.video_band} onBlur={this.handleBandChange.bind(this)} />
         <br/>
         New year: <SelectYear insertFunction={this.handleYearChange.bind(this)} insertValue={this.state.video_year} minimumYear="1960" minOrMax="maxtomin" appData={this.props.appData}></SelectYear>
         <br/>
-        New lyrics: <div className="editor" ref="lyrics_text" onKeyDown={this.handleTabKey} onPaste={this.handlePaste.bind(this)} contentEditable></div>
-        <div className="onpasteholder" ref="onpasteholder"></div>
+        New lyrics: <div className="editor" ref={lyrics_text => this.lyrics_text = lyrics_text} onKeyDown={this.handleTabKey} onPaste={this.handlePaste.bind(this)}contentEditable></div>
+        <div className="onpasteholder" ref={onpasteholder => this.onpasteholder = onpasteholder}></div>
         <br/>
         New genre: <SelectGenre insertFunction={this.handleGenreChange.bind(this)} insertValue={this.state.video_genre} appData={this.props.appData}></SelectGenre>
         <br/>
         New type: <SelectType insertFunction={this.handleTypeChange.bind(this)} insertValue={this.state.video_type} appData={this.props.appData}></SelectType>
         <br/>
-        New tags: {this.displayingEditableTags()}  <input type="text" ref="tag" onBlur={this.handle_tags_Change.bind(this)} defaultValue={this.state.tag} /> <button onClick={this.addTag.bind(this)}>Add Tag</button>
+        New tags: {this.displayingEditableTags()}  <input type="text" ref={tag => this.tag = tag} onBlur={this.handle_tags_Change.bind(this)} defaultValue={this.state.tag} /> <button onClick={this.addTag.bind(this)}>Add Tag</button>
         <br/>
         <button onClick={this.handleSubmit.bind(this)}>Save</button> <button onClick={this.props.cancelEdit}>Cancel</button>
       </div>
