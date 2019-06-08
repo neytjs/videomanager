@@ -16,6 +16,14 @@ class Metrics extends Component {
     this.calculateMpYear = this.calculateMpYear.bind(this);
     this.calculateMpBand = this.calculateMpBand.bind(this);
     this.displayGenrePieChart = this.displayGenrePieChart.bind(this);
+    this.yearsBarChar = React.createRef();
+    this.decadesBarChar = React.createRef();
+    this.bandsBarChar = React.createRef();
+    this.fiveStarsBarChar = React.createRef();
+    this.ratingsBarChar = React.createRef();
+    this.genreLineChar = React.createRef();
+    this.genrePieChar = React.createRef();
+    this.genreCanvas = React.createRef();
 
     this.state = {
       videos: [],
@@ -48,15 +56,10 @@ class Metrics extends Component {
       this.calculateMpStars();
       this.displayGenrePieChart();
 
-
-
-this.props.history.find({}, function(err, docs) {
-
-  this.setState({history: docs});
-  this.calculateGenreLineChart();
-}.bind(this));
-
-
+      this.props.history.find({}, function(err, docs) {
+        this.setState({history: docs});
+        this.calculateGenreLineChart();
+      }.bind(this));
 
     }.bind(this));
   }
@@ -66,9 +69,12 @@ this.props.history.find({}, function(err, docs) {
     if (this.state.videos.length > 0) {
       let occurrences = Utilities.occurrenceCounter(this.state.videos, "video_genre");
 
+
       occurrences.sort(function(a, b) { return b.quantity - a.quantity; });
 
+
       let most_popular_genre = occurrences[0].video_genre + ' (' + occurrences[0].quantity.toLocaleString('en-US', {minimumFractionDigits: 0}) + ' videos)';
+
 
       this.setState({mp_genre: most_popular_genre});
     }
@@ -78,6 +84,7 @@ this.props.history.find({}, function(err, docs) {
 
     if (this.state.videos.length > 0) {
       let occurrences = Utilities.occurrenceCounter(this.state.videos, "video_year");
+
 
       occurrences.sort(function(a, b) { return b.quantity - a.quantity; });
 
@@ -90,17 +97,21 @@ this.props.history.find({}, function(err, docs) {
         occurrences.splice(max);
       }
 
+
       let labels = [];
       for (var i = 0, l_length = occurrences.length; i < l_length; i++) {
         labels.push(occurrences[i].video_year);
       }
+
 
       let quantities = [];
       for (var i = 0, q_length = occurrences.length; i < q_length; i++) {
         quantities.push(occurrences[i].quantity);
       }
 
-      var ctx = this.refs.yearsBarChar;
+
+      var ctx = this.yearsBarChar;
+
 
       var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -214,7 +225,9 @@ this.props.history.find({}, function(err, docs) {
         }
       }
 
+
       tabulated.sort(function(a, b) { return b.quantity - a.quantity; });
+
 
       let tabulated_length = tabulated.length;
 
@@ -227,17 +240,21 @@ this.props.history.find({}, function(err, docs) {
 
       tabulated = tabulated.filter(element => element.quantity > 0);
 
+
       let labels = [];
       for (var i = 0, l_length = tabulated.length; i < l_length; i++) {
         labels.push(tabulated[i].label);
       }
+
 
       let quantities = [];
       for (var i = 0, q_length = tabulated.length; i < q_length; i++) {
         quantities.push(tabulated[i].quantity);
       }
 
-      var ctx = this.refs.decadesBarChar;
+
+      var ctx = this.decadesBarChar;
+
 
       var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -291,6 +308,7 @@ this.props.history.find({}, function(err, docs) {
     if (this.state.videos.length > 0) {
       let occurrences = Utilities.occurrenceCounter(this.state.videos, "video_band");
 
+
       occurrences.sort(function(a, b) { return b.quantity - a.quantity; });
 
         let occurrences_length = occurrences.length;
@@ -302,17 +320,21 @@ this.props.history.find({}, function(err, docs) {
           occurrences.splice(max);
         }
 
+
         let labels = [];
         for (var i = 0, l_length = occurrences.length; i < l_length; i++) {
           labels.push(occurrences[i].video_band);
         }
+
 
         let quantities = [];
         for (var i = 0, q_length = occurrences.length; i < q_length; i++) {
           quantities.push(occurrences[i].quantity);
         }
 
-        var ctx = this.refs.bandsBarChar;
+
+        var ctx = this.bandsBarChar;
+
 
         var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -395,17 +417,21 @@ this.props.history.find({}, function(err, docs) {
             tabulated.splice(max);
           }
 
+
           let labels = [];
           for (var i = 0, l_length = tabulated.length; i < l_length; i++) {
             labels.push(tabulated[i].label);
           }
+
 
           let ratings = [];
           for (var i = 0, q_length = tabulated.length; i < q_length; i++) {
             ratings.push(tabulated[i].rating);
           }
 
-          var ctx = this.refs.fiveStarsBarChar;
+
+          var ctx = this.fiveStarsBarChar;
+
 
           var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -489,17 +515,21 @@ this.props.history.find({}, function(err, docs) {
           let suggestedMin = (tabulated[tabulated.length - 1].rating - 1) > 0 ? Math.floor(tabulated[tabulated.length - 1].rating - 1) : 0;
           let suggestedMax = (tabulated[0].rating + 1) < 5 ? Math.ceil(tabulated[0].rating + 1) : 5;
 
+
           let labels = [];
           for (var i = 0, l_length = tabulated.length; i < l_length; i++) {
             labels.push(tabulated[i].label);
           }
+
 
           let ratings = [];
           for (var i = 0, q_length = tabulated.length; i < q_length; i++) {
             ratings.push(tabulated[i].rating);
           }
 
-          var ctx = this.refs.ratingsBarChar;
+
+          var ctx = this.ratingsBarChar;
+
 
           var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -703,9 +733,12 @@ this.props.history.find({}, function(err, docs) {
 
       x_y_data = creatXY(days);
 
-      var ctx = this.refs.genreLineChar;
+
+      var ctx = this.genreLineChar;
+
 
       var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
+
 
       function generateChartData() {
         var data = [];
@@ -768,6 +801,7 @@ this.props.history.find({}, function(err, docs) {
     if (this.state.videos.length > 0) {
       let occurrences = Utilities.occurrenceCounter(this.state.videos, "video_genre");
 
+
       occurrences.sort(function(a, b) { return b.quantity - a.quantity; });
 
         let occurrences_length = occurrences.length;
@@ -779,17 +813,21 @@ this.props.history.find({}, function(err, docs) {
           occurrences.splice(max);
         }
 
+
         let labels = [];
         for (var i = 0, l_length = occurrences.length; i < l_length; i++) {
           labels.push(occurrences[i].video_genre);
         }
+
 
         let quantities = [];
         for (var i = 0, q_length = occurrences.length; i < q_length; i++) {
           quantities.push((occurrences[i].quantity / this.state.total_songs) * 100);
         }
 
-        var ctx = this.refs.genrePieChar;
+
+        var ctx = this.genrePieChar;
+
 
         var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
 
@@ -844,21 +882,21 @@ this.props.history.find({}, function(err, docs) {
             <h3>Most popular genre:</h3>
             {mp_genre}
             <hr/>
-            <canvas ref="yearsBarChar" style={canvas_styling}></canvas>
+            <canvas ref={yearsBarChar => this.yearsBarChar = yearsBarChar} style={canvas_styling}></canvas>
             <hr/>
-            <canvas ref="decadesBarChar" style={canvas_styling}></canvas>
+            <canvas ref={decadesBarChar => this.decadesBarChar = decadesBarChar} style={canvas_styling}></canvas>
             <hr/>
-            <canvas ref="bandsBarChar" style={canvas_styling}></canvas>
+            <canvas ref={bandsBarChar => this.bandsBarChar = bandsBarChar} style={canvas_styling}></canvas>
             <hr/>
             { enough_five_stars === true ? <div>
-            <canvas ref="fiveStarsBarChar" style={canvas_styling}></canvas><hr/></div> : "" }
+            <canvas ref={fiveStarsBarChar => this.fiveStarsBarChar = fiveStarsBarChar} style={canvas_styling}></canvas><hr/></div> : "" }
             { enough_stars === true ? <div>
-            <canvas ref="ratingsBarChar" style={canvas_styling}></canvas><hr/></div> : "" }
+            <canvas ref={ratingsBarChar => this.ratingsBarChar = ratingsBarChar} style={canvas_styling}></canvas><hr/></div> : "" }
             { enough_history === true ? <div>
-            <canvas ref="genreLineChar" style={canvas_styling}></canvas>
+            <canvas ref={genreLineChar => this.genreLineChar = genreLineChar} style={canvas_styling}></canvas>
             <hr/></div> : "" }
-            <canvas ref="genrePieChar" style={canvas_styling}></canvas>
-            <canvas ref="genreCanvas" width="400" height="400"></canvas>
+            <canvas ref={genrePieChar => this.genrePieChar = genrePieChar} style={canvas_styling}></canvas>
+            <canvas ref={genreCanvas => this.genreCanvas = genreCanvas} width="400" height="400"></canvas>
           </div>
         </div>
         : <div><h3>Add videos to view your metrics.</h3></div> }
