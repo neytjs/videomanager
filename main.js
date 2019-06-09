@@ -16,19 +16,22 @@ app.on('ready', () => {
 		icon: require('path').join(__dirname, 'vm.png')
 	});
 
+
 	let url = require('url').format({
 		protocol: 'file',
 		slashes: true,
 		pathname: require('path').join(__dirname, 'index.html')
 	});
 
+
 	mainWindow.loadURL(url);
 	mainWindow.maximize();
 	mainWindow.setMenu(null);
-//	mainWindow.webContents.openDevTools(); // uncomment for testing
+//	mainWindow.webContents.openDevTools();
 });
 
 let darwin = process.platform === 'darwin';
+
 
 app.on('window-all-closed', () => {
 
@@ -37,6 +40,13 @@ app.on('window-all-closed', () => {
   }
 });
 
- global.history_viewer = {
-	 video: {}
- }
+
+	global.history_viewer = {
+		video: {}
+	}
+
+	global.search = {
+	 	view_all: true,
+		search_hidden: true,
+	 	search_arguments: {}
+	}
