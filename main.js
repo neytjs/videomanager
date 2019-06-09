@@ -48,5 +48,6 @@ app.on('window-all-closed', () => {
 	global.search = {
 	 	view_all: true,
 		search_hidden: true,
+		sorted: "",
 	 	search_arguments: {}
 	}
