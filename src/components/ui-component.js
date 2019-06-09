@@ -2,6 +2,7 @@
 The ui subcomponent provides the user with a menu bar to navigate the application.
 */
 
+
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import SearchVideos from './search-video-component';
@@ -13,23 +14,18 @@ class Ui extends Component {
     super(props);
 
     this.state = {
-      search_hidden: false
-    }
-  }
-
-  showHideSearch() {
-    if (this.state.search_hidden === true) {
-      this.setState({ search_hidden: false });
-    } else {
-      this.setState({ search_hidden: true });
+      search_hidden: props.search_hidden
     }
   }
 
 
-  leavingMainVideoList() {
+  componentWillReceiveProps(nextProps) {
 
-    remote.getGlobal('history_viewer').video = {};
+    if (nextProps.search_hidden !== this.state.search_hidden) {
+      this.setState({ search_hidden: nextProps.search_hidden});
+    }
   }
+
 
   quitApp() {
     app.quit();
@@ -39,7 +35,7 @@ class Ui extends Component {
     if (this.props.currentLoc === "main") {
       return (
         <div>
-          <a onClick={this.showHideSearch.bind(this)}>Search</a> <b><u>View Videos</u></b> <Link to="/add" onClick={this.leavingMainVideoList}>Add Video</Link> <Link to="/history" onClick={this.leavingMainVideoList}>View History</Link> <Link to="/metrics">Metrics</Link> <Link to="/settings">Settings</Link> <Link to="/colors" onClick={this.leavingMainVideoList}>Edit Colors</Link> <a onClick={() => this.quitApp()}>Quit</a>
+          <a onClick={this.props.showHideSearch}>Search</a> <b><u>View Videos</u></b> <Link to="/add">Add Video</Link> <Link to="/history">View History</Link> <Link to="/metrics">Metrics</Link> <Link to="/settings">Settings</Link> <Link to="/colors">Edit Colors</Link> <a onClick={() => this.quitApp()}>Quit</a>
         </div>
       )
     } else if (this.props.currentLoc === "history") {
@@ -84,7 +80,7 @@ class Ui extends Component {
         {
           this.state.search_hidden === true ?
           <div className="ui">
-            <SearchVideos searchVideos={this.props.searchVideos} showHideSearch={this.showHideSearch.bind(this)} appData={this.props.appData}></SearchVideos>
+            <SearchVideos searchVideos={this.props.searchVideos} showHideSearch={this.props.showHideSearch} appData={this.props.appData}></SearchVideos>
           </div>
           : ""
         }

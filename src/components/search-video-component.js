@@ -6,6 +6,8 @@ NeDB database to return a specific subset of videos.
 import React, {Component} from 'react';
 import SelectYear from './select-year-component';
 import SelectGenre from './select-genre-component';
+const remote = window.require('electron').remote;
+const app = remote.app;
 
 class SearchVideos extends Component {
   constructor(props) {
@@ -13,12 +15,11 @@ class SearchVideos extends Component {
 
     this.min_default = this.props.appData.min_year;
     this.max_default = new Date().getFullYear();
-    this.pressEnter = this.pressEnter.bind(this);    
+    this.pressEnter = this.pressEnter.bind(this);
 
     this.state = {
       title: "",
       band: "",
-      year: "",
       genre: "",
       lyrics: "",
       mintomax: "",
@@ -30,6 +31,19 @@ class SearchVideos extends Component {
 
   componentDidMount() {
     document.addEventListener("keydown", this.pressEnter, false);
+
+    if (remote.getGlobal('search').view_all === false) {
+      this.setState({
+        title: remote.getGlobal('search').search_arguments.video_title,
+        band: remote.getGlobal('search').search_arguments.band,
+        genre: remote.getGlobal('search').search_arguments.genre,
+        lyrics: remote.getGlobal('search').search_arguments.lyrics,
+        mintomax: (remote.getGlobal('search').search_arguments.mintomax === this.min_default ? "" : remote.getGlobal('search').search_arguments.mintomax),
+        maxtomin: (remote.getGlobal('search').search_arguments.maxtomin === this.max_default ? "" : remote.getGlobal('search').search_arguments.maxtomin),
+        tag: remote.getGlobal('search').search_arguments.tag,
+        stars: remote.getGlobal('search').search_arguments.stars
+      });
+    }
   }
 
   componentWillUnmount() {
@@ -67,7 +81,7 @@ class SearchVideos extends Component {
         maxtomin = temp_min;
       }
 
-      this.props.searchVideos(this.state.title, this.state.band, mintomax, maxtomin, this.state.genre, this.state.lyrics, ifyears, this.state.tag, this.state.stars);
+      this.props.searchVideos({video_title: this.state.title, band: this.state.band, mintomax: mintomax, maxtomin: maxtomin, genre: this.state.genre, lyrics: this.state.lyrics, ifyears: ifyears, tag: this.state.tag, stars: this.state.stars});
     }
   }
 
@@ -113,10 +127,6 @@ class SearchVideos extends Component {
 
   handle_band_Change(event) {
     this.setState({ band: event.target.value });
-  }
-
-  handle_year_Change(event) {
-    this.setState({ year: event.target.value });
   }
 
   handle_genre_Change(event) {

@@ -40,6 +40,7 @@ class VideoList extends Component {
       hidden: 0,
       search: "",
       searchRef: React.createRef(),
+      search_hidden: false,
       sorted: "",
       displaying: false
     };
@@ -55,9 +56,8 @@ class VideoList extends Component {
 
       if (remote.getGlobal('history_viewer').video.video_id) {
         let id = remote.getGlobal('history_viewer').video.video_id;
-        let vids_length = this.state.videos.length;
 
-        for (var i = 0; i < vids_length; i++) {
+        for (var i = 0, vids_length = this.state.videos.length; i < vids_length; i++) {
           if (this.state.videos[i]._id === id) {
 
             this.displayVideo(this.state.videos[i], id, i);
@@ -67,7 +67,7 @@ class VideoList extends Component {
     }
 
 
-  viewAll() {
+  viewAll(display_all) {
 
     this.props.videos_shortterm.find({}, function(err, docs) {
 
@@ -93,6 +93,15 @@ class VideoList extends Component {
       this.setState({counter: this.state.videos.length, total_videos: this.state.videos.length, search: "", sorted: ""});
 
       this.loadVideoFromHistory();
+
+      if (display_all === true) {
+
+        remote.getGlobal('search').view_all = true;
+      } else if (remote.getGlobal('search').view_all === false) {
+
+        this.searchVideos(remote.getGlobal('search').search_arguments);
+        this.setState({ search_hidden: remote.getGlobal('search').search_hidden });
+      }
     }.bind(this));
   }
 
@@ -105,14 +114,27 @@ class VideoList extends Component {
   }
 
 
-  searchVideos(video_title, band, mintomax, maxtomin, genre, lyrics, ifyears, tag, stars) {
+  searchVideos(searchArgs) {
+
+    remote.getGlobal('search').search_arguments = searchArgs;
+
+    remote.getGlobal('search').view_all = false;
+    let video_title = searchArgs.video_title;
+    let band = searchArgs.band;
+    let mintomax = searchArgs.mintomax;
+    let maxtomin = searchArgs.maxtomin;
+    let genre = searchArgs.genre;
+    let lyrics = searchArgs.lyrics;
+    let ifyears = searchArgs.ifyears;
+    let tag = searchArgs.tag;
+    let stars = searchArgs.stars;
 
     let search_title = Utilities.customSplit(video_title);
     let search_band = Utilities.customSplit(band);
     let search_lyrics = Utilities.customSplit(lyrics);
 
 
-    var tags = [];
+    let tags = [];
 
     if (tag !== "") {
       tags.push(tag);
@@ -174,6 +196,8 @@ class VideoList extends Component {
 
         let offset = this.state.searchRef.current.getBoundingClientRect();
         window.scrollTo(0, offset.top);
+
+        this.loadVideoFromHistory();
      }.bind(this));
   }
 
@@ -315,17 +339,17 @@ class VideoList extends Component {
 
   hideVideo(elm, video_code) {
 
-      let state = Object.assign({}, this.state);
+    let state = Object.assign({}, this.state);
 
-      state.hidden_videos.push(state.videos[elm]);
+    state.hidden_videos.push(state.videos[elm]);
 
-      state.hidden = state.hidden_videos.length;
+    state.hidden = state.hidden_videos.length;
 
-      state.videos.splice(elm, 1);
+    state.videos.splice(elm, 1);
 
-      this.setState(state);
+    this.setState(state);
 
-      this.setState({counter: (this.state.videos.length + this.state.hidden_videos.length)});
+    this.setState({counter: (this.state.videos.length + this.state.hidden_videos.length)});
   }
 
 
@@ -501,6 +525,8 @@ class VideoList extends Component {
     state.selected_video = {};
 
     this.setState(state);
+
+    remote.getGlobal('history_viewer').video = {};
   }
 
 
@@ -525,6 +551,16 @@ class VideoList extends Component {
 
       this.props.history.insert(history, function(err, doc) {
       });
+  }
+
+  showHideSearch() {
+    if (this.state.search_hidden === true) {
+      this.setState({ search_hidden: false });
+      remote.getGlobal('search').search_hidden = false;
+    } else {
+      this.setState({ search_hidden: true });
+      remote.getGlobal('search').search_hidden = true;
+    }
   }
 
 
@@ -725,10 +761,10 @@ class VideoList extends Component {
 
 
   render() {
-    const { show_search, show_add, counter, hidden, search, displaying, colors, searchRef } = this.state;
+    const { show_search, show_add, counter, hidden, search, displaying, colors, searchRef, search_hidden } = this.state;
     return (
       <div>
-        <Ui currentLoc={"main"} searchVideos={this.searchVideos.bind(this)} appData={this.props.appData}></Ui>
+        <Ui currentLoc={"main"} searchVideos={this.searchVideos.bind(this)} showHideSearch={this.showHideSearch.bind(this)} search_hidden={search_hidden} appData={this.props.appData}></Ui>
         { displaying === true ?
           <div>
             <hr/>
@@ -744,7 +780,7 @@ class VideoList extends Component {
             <br/>
           </span>
           : <br/> }
-          <b>{counter.toLocaleString('en-US', {minimumFractionDigits: 0})} results{ hidden > 0 ? <span> <a onClick={this.showHidden}>{"(" + hidden + " hidden)"}</a></span> : "" }: { (counter < this.state.total_videos) ? <button onClick={this.viewAll}>View All Videos</button> : ""}</b>
+          <b>{counter.toLocaleString('en-US', {minimumFractionDigits: 0})} results{ hidden > 0 ? <span> <a onClick={this.showHidden}>{"(" + hidden + " hidden)"}</a></span> : "" }: { (counter < this.state.total_videos) ? <button onClick={this.viewAll.bind(this, true)}>View All Videos</button> : ""}</b>
           <Table videos={this.state.videos} table={"main"} displayVideo={this.displayVideo.bind(this)} hideVideo={this.hideVideo.bind(this)} addToHistory={this.addToHistory.bind(this)}
            orderBySong={this.orderBySong.bind(this)} orderByBand={this.orderByBand.bind(this)} orderByYear={this.orderByYear.bind(this)} orderByStars={this.orderByStars.bind(this)}></Table>
         </div>
