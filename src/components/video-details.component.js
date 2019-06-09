@@ -24,9 +24,11 @@ class VideoDetails extends Component {
     }
   }
 
+
   componentDidMount() {
     this.loadStars();
   }
+
 
   componentDidUpdate(previousProps, previousState) {
 
@@ -50,6 +52,7 @@ class VideoDetails extends Component {
     }
   }
 
+
   displayingTags() {
 
     let ran_num = new Date().getTime();
@@ -63,14 +66,15 @@ class VideoDetails extends Component {
     });
   }
 
+
   runTagSearch(tag) {
 
-    this.props.searchVideos("", "", this.min_default, this.max_default, "", "", false, tag, "");
+    this.props.searchVideos({video_title: "", band: "", mintomax: this.min_default, maxtomin: this.max_default, genre: "", lyrics: "", ifyears: false, tag: tag, stars: ""});
   }
 
   runBandSearch(band) {
 
-    this.props.searchVideos("", band, this.min_default, this.max_default, "", "", false, "", "");
+    this.props.searchVideos({video_title: "", band: band, mintomax: this.min_default, maxtomin: this.max_default, genre: "", lyrics: "", ifyears: false, tag: "", stars: ""});
   }
 
   cancelEdit() {
@@ -86,6 +90,7 @@ class VideoDetails extends Component {
     }
   }
 
+
   genIframe() {
     return this.props.appData.video_type.map((type, i) => {
       if (this.props.displayVideo.video_type === type.label.toLowerCase()) {
@@ -95,6 +100,7 @@ class VideoDetails extends Component {
       }
     });
   }
+
 
   starChange(star) {
 
@@ -108,6 +114,7 @@ class VideoDetails extends Component {
 
   render() {
     const { viewing_lyrics, editing_video } = this.state;
+
 
     if (Object.keys(this.props.displayVideo).length > 0) {
       if (editing_video === false) {

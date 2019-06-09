@@ -102,6 +102,12 @@ class VideoList extends Component {
         this.searchVideos(remote.getGlobal('search').search_arguments);
         this.setState({ search_hidden: remote.getGlobal('search').search_hidden });
       }
+
+      if (remote.getGlobal('search').sorted !== "") {
+        this.setState({ sorted: remote.getGlobal('search').sorted }, function() {
+          this.sortVideos();
+        });
+      }
     }.bind(this));
   }
 
@@ -198,6 +204,12 @@ class VideoList extends Component {
         window.scrollTo(0, offset.top);
 
         this.loadVideoFromHistory();
+
+        if (remote.getGlobal('search').sorted !== "") {
+          this.setState({ sorted: remote.getGlobal('search').sorted }, function() {
+            this.sortVideos();
+          });
+        }
      }.bind(this));
   }
 
@@ -603,6 +615,8 @@ class VideoList extends Component {
         return 0;
       }
     }), sorted: sorted});
+
+    remote.getGlobal('search').sorted = sorted;
   }
 
 
@@ -645,6 +659,8 @@ class VideoList extends Component {
         return 0;
       }
     }), sorted: sorted});
+
+    remote.getGlobal('search').sorted = sorted;
   }
 
 
@@ -701,6 +717,8 @@ class VideoList extends Component {
         return 0;
       }
     }), sorted: sorted});
+
+    remote.getGlobal('search').sorted = sorted;
   }
 
 
@@ -757,6 +775,8 @@ class VideoList extends Component {
         return 0;
       }
     }), sorted: sorted});
+
+    remote.getGlobal('search').sorted = sorted;
   }
 
 
