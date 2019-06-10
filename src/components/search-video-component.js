@@ -7,7 +7,6 @@ import React, {Component} from 'react';
 import SelectYear from './select-year-component';
 import SelectGenre from './select-genre-component';
 const remote = window.require('electron').remote;
-const app = remote.app;
 
 class SearchVideos extends Component {
   constructor(props) {

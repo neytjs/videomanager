@@ -8,6 +8,7 @@ import {Link} from 'react-router-dom';
 import ReactHtmlParser from 'react-html-parser';
 import VideoUpdate from './video-update-component';
 import RateStars from './rate-stars-component.js';
+const remote = window.require('electron').remote;
 
 class VideoDetails extends Component {
   constructor(props) {
@@ -18,7 +19,7 @@ class VideoDetails extends Component {
     this.max_default = new Date().getFullYear();
 
     this.state = {
-      viewing_lyrics: false,
+      viewing_lyrics: remote.getGlobal('history_viewer').viewing_lyrics,
       editing_video: false,
       stars: ""
     }
@@ -47,8 +48,10 @@ class VideoDetails extends Component {
 
     if (this.state.viewing_lyrics === false) {
       this.setState({ viewing_lyrics: true });
+      remote.getGlobal('history_viewer').viewing_lyrics = true;
     } else {
       this.setState({ viewing_lyrics: false });
+      remote.getGlobal('history_viewer').viewing_lyrics = false;
     }
   }
 

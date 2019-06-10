@@ -42,13 +42,15 @@ class VideoList extends Component {
       searchRef: React.createRef(),
       search_hidden: false,
       sorted: "",
+      loading: true,
       displaying: false
     };
   }
 
 
-  componentDidMount() {
-    this.viewAll();
+  async componentDidMount() {
+    let loading = await this.viewAll();
+    this.setState({ loading: loading });
   }
 
 
@@ -68,47 +70,51 @@ class VideoList extends Component {
 
 
   viewAll(display_all) {
+    return new Promise(resolve => {
 
-    this.props.videos_shortterm.find({}, function(err, docs) {
+      this.props.videos_shortterm.find({}, function(err, docs) {
 
-      this.setState({videos: docs.sort(function(a, b) {
+        this.setState({videos: docs.sort(function(a, b) {
 
-        if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-          return 1;
+          if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
+            return 1;
+          }
+          if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
+            return -1;
+          }
+
+          if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
+            return 1;
+          }
+          if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
+            return -1;
+          }
+
+          return 0;
+        })});
+
+        this.setState({counter: this.state.videos.length, total_videos: this.state.videos.length, search: "", sorted: ""});
+
+        this.loadVideoFromHistory();
+
+        if (display_all === true) {
+
+          remote.getGlobal('search').view_all = true;
+        } else if (remote.getGlobal('search').view_all === false) {
+
+          this.searchVideos(remote.getGlobal('search').search_arguments);
+          this.setState({ search_hidden: remote.getGlobal('search').search_hidden });
         }
-        if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-          return -1;
+
+        if (remote.getGlobal('search').sorted !== "") {
+          this.setState({ sorted: remote.getGlobal('search').sorted }, function() {
+            this.sortVideos();
+          });
         }
 
-        if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-          return -1;
-        }
-
-        return 0;
-      })});
-
-      this.setState({counter: this.state.videos.length, total_videos: this.state.videos.length, search: "", sorted: ""});
-
-      this.loadVideoFromHistory();
-
-      if (display_all === true) {
-
-        remote.getGlobal('search').view_all = true;
-      } else if (remote.getGlobal('search').view_all === false) {
-
-        this.searchVideos(remote.getGlobal('search').search_arguments);
-        this.setState({ search_hidden: remote.getGlobal('search').search_hidden });
-      }
-
-      if (remote.getGlobal('search').sorted !== "") {
-        this.setState({ sorted: remote.getGlobal('search').sorted }, function() {
-          this.sortVideos();
-        });
-      }
-    }.bind(this));
+        resolve(false);
+      }.bind(this));
+    });
   }
 
 
@@ -544,25 +550,25 @@ class VideoList extends Component {
 
   addToHistory(code, title, band, genre, year, lyrics, lyrics_html, type, tags, stars, id) {
 
-    remote.getGlobal('history_viewer').video = {};
+    var history = {
+      video_code: code,
+      video_title: title,
+      video_band: band,
+      video_genre: genre,
+      video_year: year,
+      video_lyrics: lyrics,
+      video_lyrics_html: lyrics_html,
+      video_type: type,
+      view_date: Date.now(),
+      video_tags: tags,
+      video_stars: stars,
+      video_id: id
+    };
 
-      var history = {
-        video_code: code,
-        video_title: title,
-        video_band: band,
-        video_genre: genre,
-        video_year: year,
-        video_lyrics: lyrics,
-        video_lyrics_html: lyrics_html,
-        video_type: type,
-        view_date: Date.now(),
-        video_tags: tags,
-        video_stars: stars,
-        video_id: id
-      };
+    remote.getGlobal('history_viewer').video = history;
 
-      this.props.history.insert(history, function(err, doc) {
-      });
+    this.props.history.insert(history, function(err, doc) {
+    });
   }
 
   showHideSearch() {
@@ -781,7 +787,7 @@ class VideoList extends Component {
 
 
   render() {
-    const { show_search, show_add, counter, hidden, search, displaying, colors, searchRef, search_hidden } = this.state;
+    const { show_search, show_add, counter, hidden, search, displaying, colors, searchRef, search_hidden, loading } = this.state;
     return (
       <div>
         <Ui currentLoc={"main"} searchVideos={this.searchVideos.bind(this)} showHideSearch={this.showHideSearch.bind(this)} search_hidden={search_hidden} appData={this.props.appData}></Ui>
@@ -793,17 +799,19 @@ class VideoList extends Component {
         : ""
         }
         <hr/>
-        <div ref={searchRef}>
-          { search !== "" ?
-          <span>
-            {search}
-            <br/>
-          </span>
-          : <br/> }
-          <b>{counter.toLocaleString('en-US', {minimumFractionDigits: 0})} results{ hidden > 0 ? <span> <a onClick={this.showHidden}>{"(" + hidden + " hidden)"}</a></span> : "" }: { (counter < this.state.total_videos) ? <button onClick={this.viewAll.bind(this, true)}>View All Videos</button> : ""}</b>
-          <Table videos={this.state.videos} table={"main"} displayVideo={this.displayVideo.bind(this)} hideVideo={this.hideVideo.bind(this)} addToHistory={this.addToHistory.bind(this)}
-           orderBySong={this.orderBySong.bind(this)} orderByBand={this.orderByBand.bind(this)} orderByYear={this.orderByYear.bind(this)} orderByStars={this.orderByStars.bind(this)}></Table>
-        </div>
+        { loading === true ? <div>Loading videos...</div> :
+          <div ref={searchRef}>
+            { search !== "" ?
+            <span>
+              {search}
+              <br/>
+            </span>
+            : <br/> }
+            <b>{counter.toLocaleString('en-US', {minimumFractionDigits: 0})} results{ hidden > 0 ? <span> <a onClick={this.showHidden}>{"(" + hidden + " hidden)"}</a></span> : "" }: { (counter < this.state.total_videos) ? <button onClick={this.viewAll.bind(this, true)}>View All Videos</button> : ""}</b>
+            <Table videos={this.state.videos} table={"main"} displayVideo={this.displayVideo.bind(this)} hideVideo={this.hideVideo.bind(this)} addToHistory={this.addToHistory.bind(this)}
+             orderBySong={this.orderBySong.bind(this)} orderByBand={this.orderByBand.bind(this)} orderByYear={this.orderByYear.bind(this)} orderByStars={this.orderByStars.bind(this)}></Table>
+          </div>
+        }
       </div>
     )
   }
