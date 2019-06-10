@@ -42,7 +42,8 @@ app.on('window-all-closed', () => {
 
 
 	global.history_viewer = {
-		video: {}
+		video: {},
+		viewing_lyrics: false
 	}
 
 	global.search = {
