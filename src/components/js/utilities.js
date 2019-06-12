@@ -379,7 +379,7 @@ class Utilities {
 
       if (tags[i].style.margin) {
         tags[i].style.margin = '0';
-      }           
+      }
     }
 
     return tags;
@@ -388,6 +388,8 @@ class Utilities {
   static removeDangerousTags(innerHTML) {
 
     innerHTML = innerHTML.replace(/<\/?(?!br)(?!p)(?!pre)(?!div)(?!span)(?!strong)(?!b)(?!u)(?!i)\w*\b[^>]*>/ig, '');
+
+    innerHTML = innerHTML.replace(/\n/ig, '<br>');    
 
     innerHTML = innerHTML.replace(/\t/ig, "&nbsp; &nbsp; &nbsp; &nbsp;");
 
