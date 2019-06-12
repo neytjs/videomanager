@@ -43,7 +43,8 @@ class VideoList extends Component {
       search_hidden: false,
       sorted: "",
       loading: true,
-      displaying: false
+      displaying: false,
+      focused: false
     };
   }
 
@@ -581,6 +582,14 @@ class VideoList extends Component {
     }
   }
 
+  focusOn() {
+    this.setState({focused: true});
+  }
+
+  focusOut() {
+    this.setState({focused: false});
+  }
+
 
   orderBySong(ascdesc) {
     var sorted = ascdesc === "ASC" ? "bsn_a" : "bsn_d";
@@ -787,14 +796,14 @@ class VideoList extends Component {
 
 
   render() {
-    const { show_search, show_add, counter, hidden, search, displaying, colors, searchRef, search_hidden, loading } = this.state;
+    const { show_search, show_add, counter, hidden, search, displaying, colors, searchRef, search_hidden, loading, focused } = this.state;
     return (
       <div>
-        <Ui currentLoc={"main"} searchVideos={this.searchVideos.bind(this)} showHideSearch={this.showHideSearch.bind(this)} search_hidden={search_hidden} appData={this.props.appData}></Ui>
+        <Ui currentLoc={"main"} searchVideos={this.searchVideos.bind(this)} showHideSearch={this.showHideSearch.bind(this)} search_hidden={search_hidden} focused={focused} appData={this.props.appData}></Ui>
         { displaying === true ?
           <div>
             <hr/>
-            <VideoDetails displayVideo={this.state.selected_video} assignStar={this.assignStar.bind(this)} searchVideos={this.searchVideos.bind(this)} videoId={this.state.video_id} updateVideo={this.updateVideo.bind(this)} deleteVideo={this.deleteVideo.bind(this)} deSelect={this.deSelect.bind(this)} appData={this.props.appData}></VideoDetails>
+            <VideoDetails displayVideo={this.state.selected_video} assignStar={this.assignStar.bind(this)} searchVideos={this.searchVideos.bind(this)} videoId={this.state.video_id} updateVideo={this.updateVideo.bind(this)} deleteVideo={this.deleteVideo.bind(this)} deSelect={this.deSelect.bind(this)} focusOn={this.focusOn.bind(this)} focusOut={this.focusOut.bind(this)} appData={this.props.appData}></VideoDetails>
           </div>
         : ""
         }

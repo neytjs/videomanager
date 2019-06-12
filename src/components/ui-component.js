@@ -80,7 +80,7 @@ class Ui extends Component {
         {
           this.state.search_hidden === true ?
           <div className="ui">
-            <SearchVideos searchVideos={this.props.searchVideos} showHideSearch={this.props.showHideSearch} appData={this.props.appData}></SearchVideos>
+            <SearchVideos searchVideos={this.props.searchVideos} showHideSearch={this.props.showHideSearch} focused={this.props.focused} appData={this.props.appData}></SearchVideos>
           </div>
           : ""
         }

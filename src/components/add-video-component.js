@@ -3,7 +3,6 @@ The add-video subcomponent provides the user an interface for inserting data int
 NeDB database that holds their videos data.
 */
 
-
 import React, {Component} from 'react';
 import Utilities from './js/utilities.js';
 import Ui from './ui-component';
@@ -70,7 +69,7 @@ class AddVideo extends Component {
         alert("A title, band, year, genre, type, and video code are required.");
       } else {
 
-        this.addVideo(this.state.code, this.state.title, this.state.band, this.state.year, this.lyrics_text.innerHTML, this.state.genre, this.state.type, this.state.tags);
+        this.addVideo(this.state.code, this.state.title, this.state.band, this.state.year, Utilities.removeDangerousTags(this.lyrics_text.innerHTML), this.state.genre, this.state.type, this.state.tags);
 
         this.setState({ code: "", title: "", band: "", year: "", genre: "", type: "", tag: "", tags: [] });
 
@@ -80,6 +79,7 @@ class AddVideo extends Component {
 
 
     addVideo(code, title, band, year, lyrics, genre, type, tags) {
+      let lyrics_html = lyrics;
 
       lyrics = Utilities.htmlStringCleanerArrayConverter(lyrics);
 
@@ -102,7 +102,7 @@ class AddVideo extends Component {
                 video_band: band,
                 video_genre: genre,
                 video_lyrics: lyrics,
-                video_lyrics_html: Utilities.removeDangerousTags(this.lyrics_text.innerHTML),
+                video_lyrics_html: lyrics_html,
                 video_year: year,
                 video_type: type,
                 video_tags: tags,
@@ -245,7 +245,24 @@ class AddVideo extends Component {
     this.onpasteholder.innerHTML = pastedData;
     Utilities.htmlTagStyleCleaner(this.onpasteholder.getElementsByTagName('*'));
 
-    this.lyrics_text.innerHTML = this.onpasteholder.innerHTML;
+    var span = document.createElement('span');
+    span.innerHTML = this.onpasteholder.innerHTML;
+
+
+    if (window.getSelection) {
+
+
+      var sel = window.getSelection();
+      if (sel.getRangeAt && sel.rangeCount) {
+        var range = sel.getRangeAt(0);
+        range.insertNode(span);
+        range = range.cloneRange();
+        range.selectNodeContents(span);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
   }
 
   render() {

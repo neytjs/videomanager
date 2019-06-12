@@ -24,7 +24,15 @@ class SearchVideos extends Component {
       mintomax: "",
       maxtomin: "",
       tag: "",
-      stars: ""
+      stars: "",
+      focused: props.focused
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+
+    if (nextProps.focused !== this.state.focused) {
+      this.setState({ focused: nextProps.focused});
     }
   }
 
@@ -50,7 +58,7 @@ class SearchVideos extends Component {
   }
 
   pressEnter(event) {
-    if (event.keyCode === 13) {
+    if (event.keyCode === 13 && this.state.focused === false) {
       this.handleSubmit();
     }
   }

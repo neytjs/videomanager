@@ -117,7 +117,24 @@ class VideoUpdate extends Component {
     this.onpasteholder.innerHTML = pastedData;
     Utilities.htmlTagStyleCleaner(this.onpasteholder.getElementsByTagName('*'));
 
-    this.lyrics_text.innerHTML = this.onpasteholder.innerHTML;
+    var span = document.createElement('span');
+    span.innerHTML = this.onpasteholder.innerHTML;
+
+
+    if (window.getSelection) {
+
+
+      var sel = window.getSelection();
+      if (sel.getRangeAt && sel.rangeCount) {
+        var range = sel.getRangeAt(0);
+        range.insertNode(span);
+        range = range.cloneRange();
+        range.selectNodeContents(span);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
   }
 
 
@@ -195,7 +212,7 @@ class VideoUpdate extends Component {
         <br/>
         New year: <SelectYear insertFunction={this.handleYearChange.bind(this)} insertValue={this.state.video_year} minimumYear="1960" minOrMax="maxtomin" appData={this.props.appData}></SelectYear>
         <br/>
-        New lyrics: <div className="editor" ref={lyrics_text => this.lyrics_text = lyrics_text} onKeyDown={this.handleTabKey} onPaste={this.handlePaste.bind(this)}contentEditable></div>
+        New lyrics: <div className="editor" ref={lyrics_text => this.lyrics_text = lyrics_text} onKeyDown={this.handleTabKey} onPaste={this.handlePaste.bind(this)} onFocus={this.props.focusOn} onBlur={this.props.focusOut} contentEditable></div>
         <div className="onpasteholder" ref={onpasteholder => this.onpasteholder = onpasteholder}></div>
         <br/>
         New genre: <SelectGenre insertFunction={this.handleGenreChange.bind(this)} insertValue={this.state.video_genre} appData={this.props.appData}></SelectGenre>
