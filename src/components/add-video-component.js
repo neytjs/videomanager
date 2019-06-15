@@ -25,7 +25,6 @@ class AddVideo extends Component {
     this.handle_tags_Change = this.handle_tags_Change.bind(this);
     this.pressEnter = this.pressEnter.bind(this);
     this.onpasteholder = React.createRef();
-    this.tag = React.createRef();
 
     this.state = {
       message: "",
