@@ -262,11 +262,11 @@ class VideoList extends Component {
     function innerRecursiveFunction() {
 
       if (search_array[counter] === "video_title") {
-        search_string += "titles with " + video_title;
+        search_string += "titled " + video_title;
       }
 
       if (search_array[counter] === "band") {
-        search_string += "bands called " + band;
+        search_string += "with bands called " + band;
       }
 
       if (search_array[counter] === "mintomax") {
