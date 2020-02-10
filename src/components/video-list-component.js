@@ -1,13 +1,7 @@
-/*
-video-list-component is the app's most important subcomponent and holds methods organizing the 'CRUD'
-aspects of the app, letting the user insert, read, update and delete data stored in the main videos.db
-NeDB database that holds the data for their videos list. It also organizes the layout of the video list,
-so that the appropriate subcomponent will load if they want to conduct a search or view a video.
-*/
-
 import React, {Component} from 'react';
+import SearchVideos from './search-video-component';
+import AddVideo from './add-video-component';
 import VideoDetails from './video-details.component';
-import Ui from './ui-component';
 import Table from './table-component';
 import Utilities from './js/utilities.js';
 const remote = window.require('electron').remote;
@@ -15,215 +9,356 @@ const remote = window.require('electron').remote;
 class VideoList extends Component {
   constructor(props) {
     super(props);
-    this.displayVideo = this.displayVideo.bind(this);
-    this.updateVideo = this.updateVideo.bind(this);
-    this.assignStar = this.assignStar.bind(this);
-    this.deleteVideo = this.deleteVideo.bind(this);
-    this.hideVideo = this.hideVideo.bind(this);
-    this.showHidden = this.showHidden.bind(this);
-    this.searchVideos = this.searchVideos.bind(this);
-    this.viewAll = this.viewAll.bind(this);
-    this.deSelect = this.deSelect.bind(this);
-    this.addToHistory = this.addToHistory.bind(this);
-    this.loadVideoFromHistory = this.loadVideoFromHistory.bind(this);
-    this.searchString = this.searchString.bind(this);
 
     this.state = {
       videos: [],
-      selected_video: {},
+      selected_video: remote.getGlobal('history_viewer').video,
       video_id: 0,
       video_el: 0,
       counter: 0,
       body_background_color: "",
       total_videos: 0,
-      hidden_videos: [],
-      hidden: 0,
       search: "",
       searchRef: React.createRef(),
-      search_hidden: false,
-      sorted: "",
+      videoRef: React.createRef(),
+      search_hidden: remote.getGlobal('search').search_hidden,
+      ascdesc: remote.getGlobal('search').ascdesc,
+      sorted: remote.getGlobal('search').sorted,
       loading: true,
       displaying: false,
-      focused: false
+      history: remote.getGlobal('search').history,
+      page: remote.getGlobal('search').page,
+      per_page: this.props.appData.per_page_viewall,
+      start: 0
     };
   }
 
 
   async componentDidMount() {
     let loading = await this.viewAll();
-    this.setState({ loading: loading });
-  }
-
-
-    loadVideoFromHistory() {
-
-      if (remote.getGlobal('history_viewer').video.video_id) {
-        let id = remote.getGlobal('history_viewer').video.video_id;
-
-        for (var i = 0, vids_length = this.state.videos.length; i < vids_length; i++) {
-          if (this.state.videos[i]._id === id) {
-
-            this.displayVideo(this.state.videos[i], id, i);
-          }
-        }
+    this.setState({ loading: loading }, function() {
+      if (this.state.history === true && remote.getGlobal('search').view_all !== false) {
+        let offset = this.state.videoRef.current.getBoundingClientRect();
+        window.scrollTo(0, offset.top);
+        this.setState({ history: false }, function() {
+          remote.getGlobal('search').history = false;
+          remote.getGlobal('search').updated = false;
+        });
       }
-    }
-
-
-  viewAll(display_all) {
-    return new Promise(resolve => {
-
-      this.props.videos_shortterm.find({}, function(err, docs) {
-
-        this.setState({videos: docs.sort(function(a, b) {
-
-          if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-            return 1;
-          }
-          if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-            return -1;
-          }
-
-          if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-            return 1;
-          }
-          if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-            return -1;
-          }
-
-          return 0;
-        })});
-
-        this.setState({counter: this.state.videos.length, total_videos: this.state.videos.length, search: "", sorted: ""});
-
-        this.loadVideoFromHistory();
-
-        if (display_all === true) {
-
-          remote.getGlobal('search').view_all = true;
-        } else if (remote.getGlobal('search').view_all === false) {
-
-          this.searchVideos(remote.getGlobal('search').search_arguments);
-          this.setState({ search_hidden: remote.getGlobal('search').search_hidden });
-        }
-
-        if (remote.getGlobal('search').sorted !== "") {
-          this.setState({ sorted: remote.getGlobal('search').sorted }, function() {
-            this.sortVideos();
-          });
-        }
-
-        resolve(false);
-      }.bind(this));
     });
   }
 
 
-  displayVideo(vid, id, el) {
+  loadVideoFromHistory() {
 
-    this.setState({selected_video: vid, video_id: id, video_el: el, displaying: true});
+    if (remote.getGlobal('history_viewer').video.video_id) {
+      let just_added = false;
+      if (remote.getGlobal('history_viewer').history_clicked === true) {
+        just_added = true;
 
-    window.scrollTo(0, 0);
+        this.setState({ history: true });
+
+        remote.getGlobal('history_viewer').history_clicked = false;
+
+        if (remote.getGlobal('search').prev_view !== "none") {
+          remote.getGlobal('search').search_hidden = remote.getGlobal('search').prev_view;
+          this.setState({search_hidden: remote.getGlobal('search').prev_view});
+        }
+      }
+      let id = remote.getGlobal('history_viewer').video.video_id;
+
+      this.props.videos_shortterm.findOne({_id: id}, function(err, video) {
+        if (just_added === false) {
+
+          this.displayVideo(video, id, 0);
+        } else {
+          this.displayVideo(video, id, 0, true);
+        }
+      }.bind(this));
+    }
+  }
+
+
+  viewAll(display_all, page) {
+    let returnPromise = () => {
+      return new Promise(resolve => {
+
+        this.setState({loading: true});
+
+        if (display_all === true) {
+          this.setState({page: 1}, function() {
+            remote.getGlobal('search').page = this.state.page;
+          });
+        }
+
+        this.props.videos_shortterm.find({}, function(err, docs) {
+          let videos = docs;
+          let total_videos = videos.length;
+          let counter = videos.length;
+
+          videos = this.videosSorter(videos, this.state.ascdesc, this.state.sorted);
+
+
+          let paginate_data = {};
+          if (page) {
+
+            paginate_data = this.paginateVideos(videos, page);
+            this.setState({page: page}, function() {
+
+              remote.getGlobal('search').page = page;
+            });
+          } else {
+            paginate_data = this.paginateVideos(videos);
+          }
+
+          videos = paginate_data.viewable_videos;
+
+          this.setState({counter: counter, total_videos: total_videos, videos: videos, search: "", start: paginate_data.start});
+
+          if (remote.getGlobal('add').just_inserted_code !== "") {
+
+            this.props.videos_shortterm.findOne({video_code: remote.getGlobal('add').just_inserted_code}, function(err, vid) {
+
+              this.props.addToHistory(vid._id);
+
+              remote.getGlobal('history_viewer').video.video_id = vid._id;
+
+              remote.getGlobal('history_viewer').history_clicked = true;
+
+              this.loadVideoFromHistory();
+            }.bind(this));
+
+            remote.getGlobal('add').just_inserted_code = "";
+          } else {
+
+            this.loadVideoFromHistory();
+          }
+
+          if (videos.length === 0 && remote.getGlobal('search').search_hidden === "none") {
+            remote.getGlobal('search').search_hidden = "adding";
+            this.setState({search_hidden: "adding"});
+          }
+
+          if (display_all === true) {
+
+            remote.getGlobal('search').view_all = true;
+            remote.getGlobal('search').search_arguments.title.searched = "";
+            remote.getGlobal('search').search_arguments.band.searched = "";
+            remote.getGlobal('search').search_arguments.genre.searched = null;
+            remote.getGlobal('search').search_arguments.lyrics.searched = "";
+            remote.getGlobal('search').search_arguments.mintomax.searched = "";
+            remote.getGlobal('search').search_arguments.maxtomin.searched = "";
+            remote.getGlobal('search').search_arguments.tag.searched = null;
+            remote.getGlobal('search').search_arguments.stars.searched = null;
+
+            this.setState({loading: false});
+          } else if (remote.getGlobal('search').view_all === false) {
+
+            this.searchVideos({
+              title: remote.getGlobal('search').search_arguments.title.searched,
+              band: remote.getGlobal('search').search_arguments.band.searched,
+              mintomax: remote.getGlobal('search').search_arguments.mintomax.searched,
+              maxtomin: remote.getGlobal('search').search_arguments.maxtomin.searched,
+              genre: remote.getGlobal('search').search_arguments.genre.searched,
+              lyrics: remote.getGlobal('search').search_arguments.lyrics.searched,
+              ifyears: remote.getGlobal('search').search_arguments.ifyears,
+              tag: remote.getGlobal('search').search_arguments.tag.searched,
+              stars: remote.getGlobal('search').search_arguments.stars.searched
+            });
+            this.setState({ search_hidden: remote.getGlobal('search').search_hidden });
+          } else {
+
+            this.setState({loading: false});
+            resolve(false);
+          }
+        }.bind(this));
+      });
+    }
+
+    if (remote.getGlobal('editing').editing_video === true) {
+
+      let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
+
+      if (confirm_delete === true) {
+        returnPromise();
+      }
+    } else {
+      returnPromise();
+    }
+  }
+
+
+  displayVideo(vid, id, el, from_list) {
+    let runDisplay = () => {
+
+      this.setState({selected_video: vid, video_id: id, video_el: el, displaying: true}, function() {
+
+        if (from_list === true) {
+
+          window.scrollTo(0, 0);
+          let offset = this.state.videoRef.current.getBoundingClientRect();
+          window.scrollTo(0, offset.top);
+        }
+      });
+    }
+    if (remote.getGlobal('editing').editing_video === true) {
+
+      let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
+
+      if (confirm_delete === true) {
+        runDisplay();
+      }
+    } else {
+      runDisplay();
+    }
   }
 
 
   searchVideos(searchArgs) {
+    let runSearch = () => {
+      let video_title = searchArgs.title;
+      let band = searchArgs.band;
+      let mintomax = searchArgs.mintomax;
+      let maxtomin = searchArgs.maxtomin;
+      let genre = searchArgs.genre;
+      let lyrics = searchArgs.lyrics;
+      let ifyears = searchArgs.ifyears;
+      let tag = searchArgs.tag;
+      let stars = searchArgs.stars;
+      let key_press = (searchArgs.key_press) ? searchArgs.key_press : false;
 
-    remote.getGlobal('search').search_arguments = searchArgs;
+      if (video_title !== "" || band !== "" || genre !== null || lyrics !== "" || tag !== null || stars !== null) {
 
-    remote.getGlobal('search').view_all = false;
-    let video_title = searchArgs.video_title;
-    let band = searchArgs.band;
-    let mintomax = searchArgs.mintomax;
-    let maxtomin = searchArgs.maxtomin;
-    let genre = searchArgs.genre;
-    let lyrics = searchArgs.lyrics;
-    let ifyears = searchArgs.ifyears;
-    let tag = searchArgs.tag;
-    let stars = searchArgs.stars;
+        this.setState({loading: true});
 
-    let search_title = Utilities.customSplit(video_title);
-    let search_band = Utilities.customSplit(band);
-    let search_lyrics = Utilities.customSplit(lyrics);
+        remote.getGlobal('search').view_all = false;
+        remote.getGlobal('search').search_arguments.title.searched = video_title;
+        remote.getGlobal('search').search_arguments.band.searched = band;
+        remote.getGlobal('search').search_arguments.genre.searched = genre;
+        remote.getGlobal('search').search_arguments.lyrics.searched = lyrics;
+        remote.getGlobal('search').search_arguments.mintomax.searched = mintomax;
+        remote.getGlobal('search').search_arguments.maxtomin.searched = maxtomin;
+        remote.getGlobal('search').search_arguments.tag.searched = tag;
+        remote.getGlobal('search').search_arguments.stars.searched = stars;
+        remote.getGlobal('search').search_arguments.ifyears = ifyears;
 
-
-    let tags = [];
-
-    if (tag !== "") {
-      tags.push(tag);
-    }
+        let search_title = Utilities.customSplit(video_title);
+        let search_band = Utilities.customSplit(band);
+        let search_lyrics = Utilities.customSplit(lyrics);
 
 
-     var genre_regex = new RegExp(genre, 'i');
-     var stars_regex = new RegExp(stars, 'i');
+        let tags = [];
 
-
-     var query = { video_genre: { $regex: genre_regex }, video_stars: { $regex: stars_regex } };
-
-
-     this.props.videos_shortterm.find(query, function(err, docs) {
-
-        if (docs.length > 0) {
-
-          docs = Utilities.yearPruning(docs, mintomax, maxtomin);
-
-          docs = Utilities.arrayComparerFindAll(search_title.notquotes, docs, "video_title");
-          docs = Utilities.arrayComparer(search_title.quotes, docs, "video_title");
-          docs = Utilities.arrayComparerFindAll(search_band.notquotes, docs, "video_band");
-          docs = Utilities.arrayComparer(search_band.quotes, docs, "video_band");
-          docs = Utilities.arrayComparerFindAll(search_lyrics.notquotes, docs, "video_lyrics");
-          docs = Utilities.arrayComparer(search_lyrics.quotes, docs, "video_lyrics");
-
-          docs = Utilities.arrayComparer(tags, docs, "video_tags");
-
-          this.setState({videos: docs.sort(function(a, b) {
-
-              if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-                return 1;
-              }
-              if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-                return -1;
-              }
-
-              if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-                return 1;
-              }
-              if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-                return -1;
-              }
-
-              return 0;
-          })});
-
-            this.searchString(video_title, band, mintomax, maxtomin, genre, lyrics, ifyears, tag, stars);
-
-            this.setState({counter: this.state.videos.length, hidden_videos: [], hidden: 0});
+        if (typeof tag === "string") {
+          tags.push(tag);
         } else {
-
-          this.searchString(video_title, band, mintomax, maxtomin, genre, lyrics, ifyears, tag, stars);
-
-          this.setState({videos: docs});
-
-          this.setState({counter: this.state.videos.length, hidden_videos: [], hidden: 0});
+          if (tag !== null) {
+            for (var i = 0, length = tag.length; i < length; i++) {
+              tags.push(tag[i].value);
+            }
+          }
         }
 
-        let offset = this.state.searchRef.current.getBoundingClientRect();
-        window.scrollTo(0, offset.top);
 
-        this.loadVideoFromHistory();
+        let genres = [];
+        if (genre !== null) {
+          for (var i = 0, length = genre.length; i < length; i++) {
+            genres.push(genre[i].value.toLowerCase());
+          }
+        }
 
-        if (remote.getGlobal('search').sorted !== "") {
-          this.setState({ sorted: remote.getGlobal('search').sorted }, function() {
-            this.sortVideos();
+        let stars_ratings = [];
+        if (stars !== null) {
+          for (var i = 0, length = stars.length; i < length; i++) {
+            stars_ratings.push(stars[i].value.toLowerCase());
+          }
+        }
+
+
+        if (key_press) {
+          this.setState({page: 1}, function() {
+
+            remote.getGlobal('search').page = 1;
           });
         }
-     }.bind(this));
+
+
+        this.props.videos_shortterm.find({}, function(err, docs) {
+
+          if (docs.length > 0) {
+
+            docs = Utilities.arrayComparerFindAny(stars_ratings, docs, "video_stars");
+            docs = Utilities.arrayComparerFindAny(genres, docs, "video_genre");
+
+            docs = Utilities.yearPruning(docs, mintomax, maxtomin);
+
+            docs = Utilities.arrayComparerFindAll(search_title.notquotes, docs, "video_title");
+            docs = Utilities.arrayComparer(search_title.quotes, docs, "video_title");
+            docs = Utilities.arrayComparerFindAll(search_band.notquotes, docs, "video_band");
+            docs = Utilities.arrayComparer(search_band.quotes, docs, "video_band");
+            docs = Utilities.arrayComparerFindAll(search_lyrics.notquotes, docs, "video_lyrics");
+            docs = Utilities.arrayComparer(search_lyrics.quotes, docs, "video_lyrics");
+
+            docs = Utilities.arrayComparerFindAll(tags, docs, "video_tags");
+
+            this.setState({videos: docs});
+
+            this.setState({counter: docs.length});
+
+            docs = this.videosSorter(docs, this.state.ascdesc, this.state.sorted);
+
+            let paginate_data = this.paginateVideos(docs);
+
+            docs = paginate_data.viewable_videos;
+
+            this.setState({videos: docs, start: paginate_data.start});
+
+            this.searchString(video_title, band, mintomax, maxtomin, genres, lyrics, ifyears, tags, stars_ratings, key_press);
+          } else {
+
+            this.searchString(video_title, band, mintomax, maxtomin, genres, lyrics, ifyears, tags, stars_ratings, key_press);
+
+            this.setState({videos: docs, counter: this.state.videos.length});
+          }
+        }.bind(this));
+      }
+    }
+
+    if (remote.getGlobal('editing').editing_video === true) {
+
+      let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
+
+      if (confirm_delete === true) {
+        runSearch();
+      }
+    } else {
+      runSearch();
+    }
   }
 
 
-  searchString(video_title, band, mintomax, maxtomin, genre, lyrics, ifyears, tag, stars) {
+  searchString(video_title, band, mintomax, maxtomin, genres, lyrics, ifyears, tags, stars, key_press) {
     let search_string = "Searching videos ";
     let search_array = [];
+
+    let genres_string = "";
+    if (genres.length > 0) {
+      search_array.push("genre");
+
+      if (genres.length === 1) {
+        genres_string = genres[0];
+      } else {
+        genres_string += "[";
+        for (var i = 0, length = genres.length; i < length; i++) {
+          if (i !== (length - 1)) {
+            genres_string += genres[i] + ", ";
+          } else {
+            genres_string += genres[i];
+          }
+        }
+        genres_string += "]";
+      }
+    }
 
     if (video_title !== "") {
       search_array.push("video_title");
@@ -241,16 +376,43 @@ class VideoList extends Component {
       search_array.push("lyrics");
     }
 
-    if (genre !== "") {
-      search_array.push("genre");
-    }
+    let tag = "";
 
-    if (tag !== "") {
+    if (tags.length > 0) {
       search_array.push("tag");
+
+      if (tags.length === 1) {
+        tag = tags[0];
+      } else {
+        tag += "[";
+        for (var i = 0, length = tags.length; i < length; i++) {
+          if (i !== (length - 1)) {
+            tag += tags[i] + ", ";
+          } else {
+            tag += tags[i];
+          }
+        }
+        tag += "]";
+      }
     }
 
-    if (stars !== "") {
+    let stars_string = "";
+    if (stars.length > 0) {
       search_array.push("stars");
+
+      if (stars.length === 1) {
+        stars_string = stars[0];
+      } else {
+        stars_string += "[";
+        for (var i = 0, length = stars.length; i < length; i++) {
+          if (i !== (length - 1)) {
+            stars_string += stars[i] + ", ";
+          } else {
+            stars_string += stars[i];
+          }
+        }
+        stars_string += "]";
+      }
     }
 
 
@@ -262,11 +424,11 @@ class VideoList extends Component {
     function innerRecursiveFunction() {
 
       if (search_array[counter] === "video_title") {
-        search_string += "titled " + video_title;
+        search_string += "titled \"" + video_title + "\"";
       }
 
       if (search_array[counter] === "band") {
-        search_string += "with bands called " + band;
+        search_string += "with bands called \"" + band + "\"";
       }
 
       if (search_array[counter] === "mintomax") {
@@ -278,15 +440,15 @@ class VideoList extends Component {
       }
 
       if (search_array[counter] === "genre") {
-        search_string += "in the genre of " + genre;
+        search_string += "in the " + ((genres.length === 1) ? "genre" : "genres") + " of " + ((genres.length === 1) ? "\"" : "") + genres_string + ((genres.length === 1) ? "\"" : "");
       }
 
       if (search_array[counter] === "tag") {
-        search_string += "with tags of \"" + tag + "\"";
+        search_string += "tagged as " + ((tags.length === 1) ? "\"" : "") + tag + ((tags.length === 1) ? "\"" : "");
       }
 
       if (search_array[counter] === "stars") {
-        search_string += "that have a rating of " + stars + " stars";
+        search_string += "rated " + stars_string + " stars";
       }
 
       if (counter < (recursions - 2)) {
@@ -317,7 +479,27 @@ class VideoList extends Component {
 
     innerRecursiveFunction();
 
-    this.setState({search: search_string})
+    this.setState({search: search_string, search_hidden: remote.getGlobal('search').search_hidden, loading: false}, function() {
+
+      if (this.state.history === true || remote.getGlobal('search').updated === true) {
+        let offset = this.state.videoRef.current.getBoundingClientRect();
+        window.scrollTo(0, offset.top);
+        this.setState({ history: false }, function() {
+          remote.getGlobal('search').history = false;
+          remote.getGlobal('search').updated = false;
+        });
+      } else {
+
+        if (remote.getGlobal('interfaceClick').clicked === true && key_press === false) {
+          window.scrollTo(0, 0);
+
+          remote.getGlobal('interfaceClick').clicked = false;
+        } else {
+          let offset = this.state.searchRef.current.getBoundingClientRect();
+          window.scrollTo(0, offset.top);
+        }
+      }
+    });
   }
 
 
@@ -332,10 +514,20 @@ class VideoList extends Component {
       });
 
       this.props.videos_shortterm.remove({ _id: video_id }, {}, function (err, numRemoved) {
+        this.props.videos_shortterm.find({}, function(err, entries) {
+
+          let all_tags = Utilities.allTags(entries);
+          this.setState({all_tags: all_tags}, function() {
+
+            this.props.updateAllTags(all_tags);
+          });
+        }.bind(this));
+      }.bind(this));
+
+      this.props.history.remove({ video_id: video_id, list_id: remote.getGlobal('listTracker').list_id }, { multi: true }, function (err, numRemoved) {
 
       });
-
-      this.props.history.remove({ video_id: video_id }, { multi: true }, function (err, numRemoved) {
+      this.props.history_shortterm.remove({ video_id: video_id, list_id: remote.getGlobal('listTracker').list_id }, { multi: true }, function (err, numRemoved) {
 
       });
 
@@ -352,83 +544,6 @@ class VideoList extends Component {
       this.setState(state);
 
       this.setState({counter: this.state.videos.length});
-    }
-  }
-
-
-  hideVideo(elm, video_code) {
-
-    let state = Object.assign({}, this.state);
-
-    state.hidden_videos.push(state.videos[elm]);
-
-    state.hidden = state.hidden_videos.length;
-
-    state.videos.splice(elm, 1);
-
-    this.setState(state);
-
-    this.setState({counter: (this.state.videos.length + this.state.hidden_videos.length)});
-  }
-
-
-  showHidden() {
-
-      let state = Object.assign({}, this.state);
-
-      let hidden_videos_length = state.hidden_videos.length;
-
-      for (var i = 0; i < hidden_videos_length; i++) {
-        state.videos.push(state.hidden_videos[i]);
-      }
-
-      state.videos = state.videos.sort(function(a, b) {
-
-          if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-            return 1;
-          }
-          if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-            return -1;
-          }
-
-          if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-            return 1;
-          }
-          if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-            return -1;
-          }
-
-          return 0;
-      });
-
-      state.hidden_videos.splice(0, state.hidden);
-
-      state.hidden = 0;
-
-      this.setState(state);
-
-      this.setState({counter: this.state.videos.length});
-  }
-
-
-  sortVideos() {
-    let state = Object.assign({}, this.state);
-    if (state.sorted === "bsn_a") {
-      this.orderBySong("ASC");
-    } else if (state.sorted === "bsn_d") {
-      this.orderBySong("DESC");
-    } else if (state.sorted === "") {
-      this.orderByBand("ASC");
-    } else if (state.sorted === "bb_d") {
-      this.orderByBand("DESC");
-    } else if (state.sorted === "by_a") {
-      this.orderByYear("ASC");
-    } else if (state.sorted === "by_d") {
-      this.orderByYear("DESC");
-    } else if (state.sorted === "bs_a") {
-      this.orderByStars("ASC");
-    } else if (state.sorted === "bs_d") {
-      this.orderByStars("DESC");
     }
   }
 
@@ -452,18 +567,7 @@ class VideoList extends Component {
       }
     }
 
-    if (state.hidden > 0) {
-
-      for (var i = 0, videos_length = state.hidden_videos.length; i < videos_length; i++) {
-        if (state.hidden_videos[i]._id === video_id) {
-          state.hidden_videos[i].video_stars = star;
-        }
-      }
-    }
-
     this.setState(state);
-
-    this.sortVideos();
   }
 
 
@@ -473,7 +577,6 @@ class VideoList extends Component {
 
     new_lyrics = Utilities.htmlStringCleanerArrayConverter(new_lyrics);
 
-
     new_video_code = new_video_code.trim();
     new_video_title = new_video_title.trim();
     new_band = new_band.trim();
@@ -482,15 +585,23 @@ class VideoList extends Component {
 
     this.props.videos.update({video_code: old_video_code}, {$set:{video_code: new_video_code, video_title: new_video_title, video_band: new_band, video_year: new_year, video_lyrics: new_lyrics, video_lyrics_html: new_lyrics_html, video_genre: new_genre, video_type: new_type, video_tags: new_tags}}, function(err, doc) {
 
-    });
+      this.props.history.update({video_code: old_video_code}, {$set:{video_code: new_video_code, video_title: new_video_title, video_band: new_band}}, { multi: true });
+    }.bind(this));
 
     this.props.videos_shortterm.update({video_code: old_video_code}, {$set:{video_code: new_video_code, video_title: new_video_title, video_band: new_band, video_year: new_year, video_lyrics: new_lyrics, video_lyrics_html: new_lyrics_html, video_genre: new_genre, video_type: new_type, video_tags: new_tags}}, function(err, doc) {
+      this.props.videos_shortterm.find({}, function(err, entries) {
 
-    });
+        let all_tags = Utilities.allTags(entries);
+        this.setState({all_tags: all_tags}, function() {
+
+          this.props.updateAllTags(all_tags);
+        });
+      }.bind(this));
+    }.bind(this));
 
 
     let state = Object.assign({}, this.state);
-    let el = state.video_el;
+    let el;
 
 
 
@@ -501,8 +612,11 @@ class VideoList extends Component {
       if (this.state.videos[i].video_code === old_video_code) {
 
         video_present = true;
+
+        el = i;
       }
     }
+
 
     if (video_present === true) {
 
@@ -517,21 +631,24 @@ class VideoList extends Component {
       state.videos[el].video_tags = new_tags;
       state.videos[el].video_stars = new_stars;
 
-      this.sortVideos();
-
-      this.setState({counter: this.state.videos.length});
+      state.counter = this.state.videos.length;
     }
 
-      state.selected_video.video_title = new_video_title;
-      state.selected_video.video_code = new_video_code;
-      state.selected_video.video_band = new_band;
-      state.selected_video.video_year = new_year;
-      state.selected_video.video_lyrics = new_lyrics;
-      state.selected_video.video_lyrics_html = new_lyrics_html;
-      state.selected_video.video_genre = new_genre;
-      state.selected_video.video_type = new_type;
-      state.selected_video.video_tags = new_tags;
-      state.selected_video.video_stars = new_stars;
+    state.selected_video.video_title = new_video_title;
+    state.selected_video.video_code = new_video_code;
+    state.selected_video.video_band = new_band;
+    state.selected_video.video_year = new_year;
+    state.selected_video.video_lyrics = new_lyrics;
+    state.selected_video.video_lyrics_html = new_lyrics_html;
+    state.selected_video.video_genre = new_genre;
+    state.selected_video.video_type = new_type;
+    state.selected_video.video_tags = new_tags;
+    state.selected_video.video_stars = new_stars;
+
+
+    remote.getGlobal('search').history = true;
+
+    remote.getGlobal('search').updated = true;
 
     this.setState(state);
   }
@@ -548,277 +665,337 @@ class VideoList extends Component {
     remote.getGlobal('history_viewer').video = {};
   }
 
+  showHideSearch(display) {
+    remote.getGlobal('search').prev_view = (display === "none") ? display : remote.getGlobal('search').prev_view;
+    remote.getGlobal('search').search_hidden = display;
+    this.setState({ search_hidden: display });
+    window.scrollTo(0, 0);
+  }
 
-  addToHistory(code, title, band, genre, year, lyrics, lyrics_html, type, tags, stars, id) {
-
-    var history = {
-      video_code: code,
-      video_title: title,
-      video_band: band,
-      video_genre: genre,
-      video_year: year,
-      video_lyrics: lyrics,
-      video_lyrics_html: lyrics_html,
-      video_type: type,
-      view_date: Date.now(),
-      video_tags: tags,
-      video_stars: stars,
-      video_id: id
-    };
-
-    remote.getGlobal('history_viewer').video = history;
-
-    this.props.history.insert(history, function(err, doc) {
+  refreshVideo() {
+    let current_vid = this.state.selected_video;
+    this.setState({ selected_video: {} }, function() {
+      this.setState({ selected_video: current_vid });
     });
   }
 
-  showHideSearch() {
-    if (this.state.search_hidden === true) {
-      this.setState({ search_hidden: false });
-      remote.getGlobal('search').search_hidden = false;
+  scrollTop() {
+    window.scrollTo(0, 0);
+  }
+
+  videosSorter(videos, ascdesc, sort_symbol, theader_call) {
+
+    if (theader_call === true) {
+      this.setState({ ascdesc: ascdesc, sorted: sort_symbol }, function() {
+        this.viewAll();
+      });
     } else {
-      this.setState({ search_hidden: true });
-      remote.getGlobal('search').search_hidden = true;
+      if (sort_symbol === "bsn_a" || sort_symbol === "bsn_d") {
+        videos.sort(function(a, b) {
+          if (ascdesc === "ASC") {
+
+            if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
+              return -1;
+            }
+
+            if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
+              return -1;
+            }
+
+            return 0;
+          } else {
+
+            if (a.video_title.toLowerCase() < b.video_title.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_title.toLowerCase() < a.video_title.toLowerCase()) {
+              return -1;
+            }
+
+            if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
+              return -1;
+            }
+
+            return 0;
+          }
+        });
+      } else if (sort_symbol === "" || sort_symbol === "bb_d") {
+        videos.sort(function(a, b) {
+          if (ascdesc === "ASC") {
+
+            if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
+              return -1;
+            }
+
+            if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
+              return -1;
+            }
+
+            return 0;
+          } else {
+
+            if (a.video_band.toLowerCase() < b.video_band.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_band.toLowerCase() < a.video_band.toLowerCase()) {
+              return -1;
+            }
+
+            if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
+              return -1;
+            }
+
+            return 0;
+          }
+        });
+      } else if (sort_symbol === "by_a" || sort_symbol === "by_d") {
+        videos.sort(function(a, b) {
+          if (ascdesc === "ASC") {
+
+            if (a.video_year < b.video_year) {
+              return 1;
+            }
+            if (b.video_year < a.video_year) {
+              return -1;
+            }
+
+            if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
+              return -1;
+            }
+
+            if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
+              return -1;
+            }
+
+            return 0;
+          } else {
+
+            if (a.video_year > b.video_year) {
+              return 1;
+            }
+            if (b.video_year > a.video_year) {
+              return -1;
+            }
+
+            if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
+              return -1;
+            }
+
+            if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
+              return -1;
+            }
+
+            return 0;
+          }
+        });
+      } else if (sort_symbol === "bs_a" || sort_symbol === "bs_d") {
+        videos.sort(function(a, b) {
+          if (ascdesc === "ASC") {
+
+            if (a.video_stars < b.video_stars) {
+              return 1;
+            }
+            if (b.video_stars < a.video_stars) {
+              return -1;
+            }
+
+            if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
+              return -1;
+            }
+
+            if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
+              return -1;
+            }
+
+            return 0;
+          } else {
+
+            if (a.video_stars > b.video_stars) {
+              return 1;
+            }
+            if (b.video_stars > a.video_stars) {
+              return -1;
+            }
+
+            if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
+              return -1;
+            }
+
+            if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
+              return 1;
+            }
+            if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
+              return -1;
+            }
+
+            return 0;
+          }
+        });
+      }
+
+      return videos;
     }
+
+    remote.getGlobal('search').ascdesc = ascdesc;
+    remote.getGlobal('search').sorted = sort_symbol;
   }
 
-  focusOn() {
-    this.setState({focused: true});
+  handlePageChange(page) {
+
+    this.viewAll(false, page);
   }
 
-  focusOut() {
-    this.setState({focused: false});
+  createPageNumbers() {
+    const { counter, page, per_page, videos } = this.state;
+    let videos_length = videos.length;
+    let pages = [];
+    for (var i = 1, length = Math.ceil(counter / per_page); i <= length; i++) {
+      pages.push(i);
+    }
+    let pages_length = pages.length;
+    let pagination = [];
+
+    if ((videos_length >= per_page && page === 1) || (counter > per_page && page > 1)) {
+
+    	if (page > 2) {
+        pagination.push({ page: 1, status: "First", style: "default" });
+    	}
+
+    	for (var i = 1; i <= (page + 1) && i <= pages_length; i++) {
+    		if ((page - 1) <= i) {
+          if (page === i) {
+            pagination.push({ page: i, status: "normal", style: "selected" });
+          } else {
+            pagination.push({ page: i, status: "normal", style: "default" });
+          }
+    		}
+    	}
+
+
+    	if (page < (pages_length - 1)) {
+    		for (var i = pages_length; i <= pages_length; i++) {
+          pagination.push({ page: i, status: "Last", style: "default" });
+    		}
+    	}
+    }
+
+    return pagination.map((pg, i) => {
+      return (
+        <span key={"pagination" + i}>
+          { pg.status === "Last" ? "... " : "" }
+          { pg.style === "default" ? <a onClick={this.handlePageChange.bind(this, pg.page)}>{ pg.status === "normal" ? pg.page : pg.status }</a>
+            : <b>{ pg.page }</b> }
+          {' '}
+          { pg.status === "First" ? "... " : "" }
+        </span>
+      )
+    });
   }
 
+  paginateVideos(videos, page) {
 
-  orderBySong(ascdesc) {
-    var sorted = ascdesc === "ASC" ? "bsn_a" : "bsn_d";
-    this.setState({videos: this.state.videos.sort(function(a, b) {
-      if (ascdesc === "ASC") {
 
-        if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-          return -1;
-        }
+    if (isNaN(page) === true)  {
+      page = this.state.page;
+    }
 
-        if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-          return -1;
-        }
+    let per_page = this.state.per_page;
 
-        return 0;
-      } else {
+    let start = (page > 1) ? (page * per_page) - per_page : 0;
 
-        if (a.video_title.toLowerCase() < b.video_title.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_title.toLowerCase() < a.video_title.toLowerCase()) {
-          return -1;
-        }
-
-        if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-          return -1;
-        }
-
-        return 0;
+    let viewable_videos = [];
+    for (var i = 0, length = videos.length; i < length; i++) {
+      if (i < (start + per_page) && i >= start) {
+        viewable_videos.push(videos[i]);
       }
-    }), sorted: sorted});
+    }
 
-    remote.getGlobal('search').sorted = sorted;
-  }
-
-
-  orderByBand(ascdesc) {
-    var sorted = (ascdesc === "ASC" ? "" : "bb_d");
-    this.setState({videos: this.state.videos.sort(function(a, b) {
-      if (ascdesc === "ASC") {
-
-        if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-          return -1;
-        }
-
-        if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-          return -1;
-        }
-
-        return 0;
-      } else {
-
-        if (a.video_band.toLowerCase() < b.video_band.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_band.toLowerCase() < a.video_band.toLowerCase()) {
-          return -1;
-        }
-
-        if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-          return -1;
-        }
-
-        return 0;
-      }
-    }), sorted: sorted});
-
-    remote.getGlobal('search').sorted = sorted;
-  }
-
-
-  orderByYear(ascdesc) {
-    var sorted = (ascdesc === "ASC" ? "by_a" : "by_d");
-    this.setState({videos: this.state.videos.sort(function(a, b) {
-      if (ascdesc === "ASC") {
-
-        if (a.video_year < b.video_year) {
-          return 1;
-        }
-        if (b.video_year < a.video_year) {
-          return -1;
-        }
-
-        if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-          return -1;
-        }
-
-        if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-          return -1;
-        }
-
-        return 0;
-      } else {
-
-        if (a.video_year > b.video_year) {
-          return 1;
-        }
-        if (b.video_year > a.video_year) {
-          return -1;
-        }
-
-        if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-          return -1;
-        }
-
-        if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-          return -1;
-        }
-
-        return 0;
-      }
-    }), sorted: sorted});
-
-    remote.getGlobal('search').sorted = sorted;
-  }
-
-
-  orderByStars(ascdesc) {
-    var sorted = (ascdesc === "ASC" ? "bs_a" : "bs_d");
-    this.setState({videos: this.state.videos.sort(function(a, b) {
-      if (ascdesc === "ASC") {
-
-        if (a.video_stars < b.video_stars) {
-          return 1;
-        }
-        if (b.video_stars < a.video_stars) {
-          return -1;
-        }
-
-        if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-          return -1;
-        }
-
-        if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-          return -1;
-        }
-
-        return 0;
-      } else {
-
-        if (a.video_stars > b.video_stars) {
-          return 1;
-        }
-        if (b.video_stars > a.video_stars) {
-          return -1;
-        }
-
-        if (a.video_band.toLowerCase() > b.video_band.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_band.toLowerCase() > a.video_band.toLowerCase()) {
-          return -1;
-        }
-
-        if (a.video_title.toLowerCase() > b.video_title.toLowerCase()) {
-          return 1;
-        }
-        if (b.video_title.toLowerCase() > a.video_title.toLowerCase()) {
-          return -1;
-        }
-
-        return 0;
-      }
-    }), sorted: sorted});
-
-    remote.getGlobal('search').sorted = sorted;
+    return { viewable_videos: viewable_videos, start: start }
   }
 
 
   render() {
-    const { show_search, show_add, counter, hidden, search, displaying, colors, searchRef, search_hidden, loading, focused } = this.state;
+  const { counter, search, displaying, colors, searchRef, videoRef, search_hidden, start, per_page, loading, total_videos } = this.state;
     return (
       <div>
-        <Ui currentLoc={"main"} searchVideos={this.searchVideos.bind(this)} showHideSearch={this.showHideSearch.bind(this)} search_hidden={search_hidden} focused={focused} appData={this.props.appData}></Ui>
-        { displaying === true ?
-          <div>
-            <hr/>
-            <VideoDetails displayVideo={this.state.selected_video} assignStar={this.assignStar.bind(this)} searchVideos={this.searchVideos.bind(this)} videoId={this.state.video_id} updateVideo={this.updateVideo.bind(this)} deleteVideo={this.deleteVideo.bind(this)} deSelect={this.deSelect.bind(this)} focusOn={this.focusOn.bind(this)} focusOut={this.focusOut.bind(this)} appData={this.props.appData}></VideoDetails>
-          </div>
-        : ""
-        }
-        <hr/>
-        { loading === true ? <div>Loading videos...</div> :
-          <div ref={searchRef}>
+          { loading === true ? <div>Loading videos...</div> :
+            <div>
+            {
+              search_hidden === "searching" ?
+              <div>
+                <SearchVideos searchVideos={this.searchVideos.bind(this)} hideSearch={this.showHideSearch.bind(this, "none")} appData={this.props.appData} all_tags={this.props.all_tags} cssTemplate={this.props.cssTemplate}></SearchVideos>
+              </div>
+              : ""
+            }
+            {
+              search_hidden === "adding" ?
+              <div>
+                <AddVideo videos={this.props.videos} videos_shortterm={this.props.videos_shortterm} hideAdd={this.showHideSearch.bind(this, "none")} appData={this.props.appData} updateAllTags={this.props.updateAllTags} cssTemplate={this.props.cssTemplate}></AddVideo>
+              </div>
+              : ""
+            }
+            <div ref={videoRef}>
+              {
+                displaying === true ?
+                <VideoDetails displayVideo={this.state.selected_video} assignStar={this.assignStar.bind(this)} searchVideos={this.searchVideos.bind(this)} videoId={this.state.video_id} updateVideo={this.updateVideo.bind(this)} deleteVideo={this.deleteVideo.bind(this)} deSelect={this.deSelect.bind(this)} appData={this.props.appData} cssTemplate={this.props.cssTemplate} refreshVideo={this.refreshVideo.bind(this)}></VideoDetails>
+                : ""
+              }
+            </div>
             { search !== "" ?
-            <span>
+            <div ref={searchRef}>
               {search}
-              <br/>
-            </span>
-            : <br/> }
-            <b>{counter.toLocaleString('en-US', {minimumFractionDigits: 0})} results{ hidden > 0 ? <span> <a onClick={this.showHidden}>{"(" + hidden + " hidden)"}</a></span> : "" }: { (counter < this.state.total_videos) ? <button onClick={this.viewAll.bind(this, true)}>View All Videos</button> : ""}</b>
-            <Table videos={this.state.videos} table={"main"} displayVideo={this.displayVideo.bind(this)} hideVideo={this.hideVideo.bind(this)} addToHistory={this.addToHistory.bind(this)}
-             orderBySong={this.orderBySong.bind(this)} orderByBand={this.orderByBand.bind(this)} orderByYear={this.orderByYear.bind(this)} orderByStars={this.orderByStars.bind(this)}></Table>
+            </div>
+            : "" }
+            { counter > 0 || total_videos > 0 ?
+              <div>
+                <b>{counter.toLocaleString('en-US', {minimumFractionDigits: 0})} videos{counter > 0 ? <span> (viewing {start + 1} - {start + per_page < counter ? start + per_page : counter}):</span> : ":"} { (counter < this.state.total_videos) ? <button onClick={() => this.viewAll(true)}>View All Videos</button> : ""}</b>
+                <br/>
+                { this.createPageNumbers() }
+                <Table videos={this.state.videos} table={"main"} displayVideo={this.displayVideo.bind(this)} addToHistory={this.props.addToHistory} videosSorter={this.videosSorter.bind(this)}></Table>
+                { this.createPageNumbers() }
+                <br/>
+                { (counter > 15 || (search_hidden === "searching" && counter > 6 || search_hidden === "adding" && counter > 1 )) ? <button onClick={this.scrollTop}>Top</button> : ""}
+              </div>
+             : "" }
           </div>
         }
       </div>

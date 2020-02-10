@@ -1,29 +1,42 @@
-/*
-The metrics component provides the user an interface for viewing analysis of their videos.db
-NeDB database data in a chart form using Chart.js.
-*/
-
 import React, {Component} from 'react';
-import Ui from './ui-component';
 import Utilities from './js/utilities.js';
 import Chart from 'chart.js';
+const remote = window.require('electron').remote;
 
 class Metrics extends Component {
   constructor() {
     super();
-    this.loadVideosAndMetrics = this.loadVideosAndMetrics.bind(this);
-    this.calculateMpGenre = this.calculateMpGenre.bind(this);
-    this.calculateMpYear = this.calculateMpYear.bind(this);
-    this.calculateMpBand = this.calculateMpBand.bind(this);
-    this.displayGenrePieChart = this.displayGenrePieChart.bind(this);
+    this.genreBarChar = React.createRef();
     this.yearsBarChar = React.createRef();
     this.decadesBarChar = React.createRef();
     this.bandsBarChar = React.createRef();
     this.fiveStarsBarChar = React.createRef();
-    this.ratingsBarChar = React.createRef();
+    this.rankingsBarChar = React.createRef();
     this.genreLineChar = React.createRef();
     this.genrePieChar = React.createRef();
     this.genreCanvas = React.createRef();
+    this.tagsBarChar = React.createRef();
+    this.mpg = React.createRef();
+    this.mpy = React.createRef();
+    this.mpd = React.createRef();
+    this.mpb = React.createRef();
+    this.bmwfsv = React.createRef();
+    this.hrb = React.createRef();
+    this.mct = React.createRef();
+    this.gvotpd = React.createRef();
+    this.gpc = React.createRef();
+    this.max_days = 28;
+    this.labels = {
+      mpg: "Most popular genres:",
+      mpy: "Most popular years:",
+      mpd: "Most popular decades:",
+      mpb: "Most popular bands:",
+      bmwfsv: "Bands with most five star videos:",
+      hrb: "Highest ranked bands:",
+      mct: "Most common tags:",
+      gvotpd: "Genre viewing over the past " + this.max_days + " days:",
+      gpc: "Genre pie chart:"
+    }
 
     this.state = {
       videos: [],
@@ -33,8 +46,10 @@ class Metrics extends Component {
       enough_stars: false,
       enough_five_stars: false,
       enough_history: false,
+      enough_tags: false,
       backgroundColors: ['#ff6666', '#00cc00', '#4d4dff', '#ffff00', '#a64dff', '#ffa366', '#ff80b3', '#00ffbf', '#88cc00', '#e6004c', '#c2c2a3', '#d2a679', '#ffdb4d', '#ff80ff', '#cccccc', '#4dff88', '#ff531a', '#ff0000'],
       borderColors: ['#ff0000', '#006600', '#0000cc', '#e6e600', '#6600cc', '#ff6600', '#ff0066', '#00b386', '#669900', '#990033', '#999966', '#996633', '#e6b800', '#ff00ff', '#999999', '#00cc44', '#cc3300', '#b30000'],
+      loaded: false
     }
   }
 
@@ -54,13 +69,15 @@ class Metrics extends Component {
       this.calculateMpBand();
       this.calculateMpFiveStars();
       this.calculateMpStars();
+      this.topTags();
       this.displayGenrePieChart();
 
-      this.props.history.find({}, function(err, docs) {
+      this.props.history.find({list_id: remote.getGlobal('listTracker').list_id}, function(err, docs) {
         this.setState({history: docs});
         this.calculateGenreLineChart();
-      }.bind(this));
 
+        this.setState({loaded: true});
+      }.bind(this));
     }.bind(this));
   }
 
@@ -72,11 +89,73 @@ class Metrics extends Component {
 
       occurrences.sort(function(a, b) { return b.quantity - a.quantity; });
 
+      let occurrences_length = occurrences.length;
 
-      let most_popular_genre = occurrences[0].video_genre + ' (' + occurrences[0].quantity.toLocaleString('en-US', {minimumFractionDigits: 0}) + ' videos)';
+      let max = 10;
+
+      if (occurrences_length > max) {
+
+        occurrences.splice(max);
+      }
 
 
-      this.setState({mp_genre: most_popular_genre});
+      let labels = [];
+      for (var i = 0, l_length = occurrences.length; i < l_length; i++) {
+        labels.push(occurrences[i].video_genre);
+      }
+
+
+      let quantities = [];
+      for (var i = 0, q_length = occurrences.length; i < q_length; i++) {
+        quantities.push(occurrences[i].quantity);
+      }
+
+
+      var ctx = this.genreBarChar;
+
+
+      var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
+
+      var myLineChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'number of videos',
+            data: quantities,
+            backgroundColor: colors.first_array,
+            borderColor: colors.second_array,
+            borderWidth: 1,
+            barPercentage: 0.5,
+            barThickness: 'flex',
+            maxBarThickness: 25,
+            minBarLength: 2,
+            gridLines: {
+              offsetGridLines: true
+            }
+          }]
+        },
+        options: {
+          title: {
+  					display: true,
+  					text: this.labels.mpg
+          },
+          scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true,
+                  callback: function(label, index, labels) {
+
+                         if (Math.floor(label) === label) {
+                             return label;
+                         }
+
+                  }
+                }
+              }]
+          }
+        }
+      });
     }
   }
 
@@ -90,7 +169,7 @@ class Metrics extends Component {
 
       let occurrences_length = occurrences.length;
 
-      let max = 10;
+      let max = 15;
 
       if (occurrences_length > max) {
 
@@ -124,36 +203,34 @@ class Metrics extends Component {
             data: quantities,
             backgroundColor: colors.first_array,
             borderColor: colors.second_array,
-            borderWidth: 1
+            borderWidth: 1,
+            barPercentage: 0.5,
+            barThickness: 'flex',
+            maxBarThickness: 25,
+            minBarLength: 2,
+            gridLines: {
+              offsetGridLines: true
+            }
           }]
         },
         options: {
           title: {
   					display: true,
-  					text: 'Most popular years:'
+  					text: this.labels.mpy
           },
           scales: {
-            yAxes: [{
-              ticks: {
-                beginAtZero: true,
-                userCallback: function(label, index, labels) {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true,
+                  callback: function(label, index, labels) {
 
-                       if (Math.floor(label) === label) {
-                           return label;
-                       }
+                         if (Math.floor(label) === label) {
+                             return label;
+                         }
 
+                  }
                 }
-              }
-            }],
-            xAxes: [{
-              barPercentage: 0.5,
-              barThickness: 'flex',
-              maxBarThickness: 25,
-              minBarLength: 2,
-              gridLines: {
-                offsetGridLines: true
-              }
-            }]
+              }]
           }
         }
       });
@@ -267,36 +344,34 @@ class Metrics extends Component {
             data: quantities,
             backgroundColor: colors.first_array,
             borderColor: colors.second_array,
-            borderWidth: 1
+            borderWidth: 1,
+            barPercentage: 0.5,
+            barThickness: 'flex',
+            maxBarThickness: 25,
+            minBarLength: 2,
+            gridLines: {
+              offsetGridLines: true
+            }
           }]
         },
         options: {
           title: {
   					display: true,
-  					text: 'Most popular decades:'
+  					text: this.labels.mpd
           },
           scales: {
-            yAxes: [{
-              ticks: {
-                beginAtZero: true,
-                userCallback: function(label, index, labels) {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true,
+                  callback: function(label, index, labels) {
 
-                       if (Math.floor(label) === label) {
-                           return label;
-                       }
+                         if (Math.floor(label) === label) {
+                             return label;
+                         }
 
+                  }
                 }
-              }
-            }],
-            xAxes: [{
-              barPercentage: 0.5,
-              barThickness: 'flex',
-              maxBarThickness: 25,
-              minBarLength: 2,
-              gridLines: {
-                offsetGridLines: true
-              }
-            }]
+              }]
           }
         }
       });
@@ -313,7 +388,7 @@ class Metrics extends Component {
 
         let occurrences_length = occurrences.length;
 
-        let max = 10;
+        let max = 15;
 
         if (occurrences_length > max) {
 
@@ -347,36 +422,34 @@ class Metrics extends Component {
               data: quantities,
               backgroundColor: colors.first_array,
               borderColor: colors.second_array,
-              borderWidth: 1
+              borderWidth: 1,
+              barPercentage: 0.5,
+              barThickness: 'flex',
+              maxBarThickness: 25,
+              minBarLength: 2,
+              gridLines: {
+                offsetGridLines: true
+              }
             }]
           },
           options: {
             title: {
     					display: true,
-    					text: 'Most popular band:'
+    					text: this.labels.mpb
             },
             scales: {
-              yAxes: [{
-                ticks: {
-                  beginAtZero: true,
-                  userCallback: function(label, index, labels) {
+                yAxes: [{
+                  ticks: {
+                    beginAtZero: true,
+                    callback: function(label, index, labels) {
 
-                         if (Math.floor(label) === label) {
-                             return label;
-                         }
+                           if (Math.floor(label) === label) {
+                               return label;
+                           }
 
+                    }
                   }
-                }
-              }],
-              xAxes: [{
-                barPercentage: 0.5,
-                barThickness: 'flex',
-                maxBarThickness: 25,
-                minBarLength: 2,
-                gridLines: {
-                  offsetGridLines: true
-                }
-              }]
+                }]
             }
           }
         });
@@ -410,7 +483,7 @@ class Metrics extends Component {
 
           let tabulated_length = tabulated.length;
 
-          let max = 10;
+          let max = 15;
 
           if (tabulated_length > max) {
 
@@ -444,36 +517,34 @@ class Metrics extends Component {
                 data: ratings,
                 backgroundColor: colors.first_array,
                 borderColor: colors.second_array,
-                borderWidth: 1
+                borderWidth: 1,
+                barPercentage: 0.5,
+                barThickness: 'flex',
+                maxBarThickness: 25,
+                minBarLength: 2,
+                gridLines: {
+                  offsetGridLines: true
+                }
               }]
             },
             options: {
               title: {
       					display: true,
-      					text: 'Bands with most five star videos:'
+      					text: this.labels.bmwfsv
               },
               scales: {
-                yAxes: [{
-                  ticks: {
-                    beginAtZero: true,
-                    userCallback: function(label, index, labels) {
+                  yAxes: [{
+                    ticks: {
+                      beginAtZero: true,
+                      callback: function(label, index, labels) {
 
-                           if (Math.floor(label) === label) {
-                               return label;
-                           }
+                             if (Math.floor(label) === label) {
+                                 return label;
+                             }
 
+                      }
                     }
-                  }
-                }],
-                xAxes: [{
-                  barPercentage: 0.5,
-                  barThickness: 'flex',
-                  maxBarThickness: 25,
-                  minBarLength: 2,
-                  gridLines: {
-                    offsetGridLines: true
-                  }
-                }]
+                  }]
               }
             }
           });
@@ -485,35 +556,34 @@ class Metrics extends Component {
 
     if (this.state.videos.length > 10) {
       let occurrences = Utilities.occurrenceCounter(this.state.videos, "video_band", "video_stars");
-
-      var calc_minimum_quantity = occurrences.sort(function(a, b){return b.quantity - a.quantity});
-      var top_twenty_percent = Math.round(calc_minimum_quantity.length * 0.2);
-      calc_minimum_quantity.splice(top_twenty_percent);
-      var minimum_quantity = calc_minimum_quantity[calc_minimum_quantity.length - 1].quantity;
       var tabulated = [];
+      var minimum_quantity = 2;
+
       for (var i = 0, length = occurrences.length; i < length; i++) {
-        var rating = occurrences[i].count_property.reduce(function(total, num){return total + num;}) / occurrences[i].quantity;
-        if (occurrences[i].quantity >= minimum_quantity && rating !== 0) {
-          tabulated.push({ label: occurrences[i].video_band, rating: rating.toFixed(2) });
+        var ranking = 0;
+        for (var j = 0, jlength = occurrences[i].count_property.length; j < jlength; j++) {
+          let reducer = (a, b) => a + b;
+          ranking = occurrences[i].count_property.reduce(reducer);
+        }
+
+        if (ranking > 0) {
+          tabulated.push({ label: occurrences[i].video_band, ranking: ranking });
         }
       }
 
       if (tabulated.length >= minimum_quantity) {
         this.setState({enough_stars: true});
 
-        tabulated.sort(function(a, b) { return b.rating - a.rating; });
+        tabulated.sort(function(a, b) { return b.ranking - a.ranking; });
 
           let tabulated_length = tabulated.length;
 
-          let max = 10;
+          let max = 15;
 
           if (tabulated_length > max) {
 
             tabulated.splice(max);
           }
-
-          let suggestedMin = (tabulated[tabulated.length - 1].rating - 1) > 0 ? Math.floor(tabulated[tabulated.length - 1].rating - 1) : 0;
-          let suggestedMax = (tabulated[0].rating + 1) < 5 ? Math.ceil(tabulated[0].rating + 1) : 5;
 
 
           let labels = [];
@@ -524,11 +594,11 @@ class Metrics extends Component {
 
           let ratings = [];
           for (var i = 0, q_length = tabulated.length; i < q_length; i++) {
-            ratings.push(tabulated[i].rating);
+            ratings.push(tabulated[i].ranking);
           }
 
 
-          var ctx = this.ratingsBarChar;
+          var ctx = this.rankingsBarChar;
 
 
           var colors = Utilities.doubleShuffler(this.state.backgroundColors, this.state.borderColors);
@@ -538,45 +608,126 @@ class Metrics extends Component {
             data: {
               labels: labels,
               datasets: [{
-                label: 'average stars rating',
+                label: 'cumulative stars ranking',
                 data: ratings,
                 backgroundColor: colors.first_array,
                 borderColor: colors.second_array,
-                borderWidth: 1
+                borderWidth: 1,
+                barPercentage: 0.5,
+                barThickness: 'flex',
+                maxBarThickness: 25,
+                minBarLength: 2,
+                gridLines: {
+                  offsetGridLines: true
+                }
               }]
             },
             options: {
               title: {
       					display: true,
-      					text: 'Highest rated bands:'
+      					text: this.labels.hrb
               },
               scales: {
-                yAxes: [{
-                  ticks: {
-                    suggestedMin: suggestedMin,
-                    suggestedMax: suggestedMax,
-                    userCallback: function(label, index, labels) {
+                  yAxes: [{
+                    ticks: {
+                      beginAtZero: true,
+                      callback: function(label, index, labels) {
 
-                           if (Math.floor(label) === label) {
-                               return label;
-                           }
+                         if (Math.floor(label) === label) {
+                             return label;
+                         }
 
+                      }
                     }
-                  }
-                }],
-                xAxes: [{
-                  barPercentage: 0.5,
-                  barThickness: 'flex',
-                  maxBarThickness: 25,
-                  minBarLength: 2,
-                  gridLines: {
-                    offsetGridLines: true
-                  }
-                }]
+                  }]
               }
             }
           });
       }
+    }
+  }
+
+
+  topTags() {
+
+    let tags = [];
+
+    for (var i = 0, vid_length = this.state.videos.length; i < vid_length; i++) {
+      for (var j = 0, tags_length = this.state.videos[i].video_tags.length; j < tags_length; j++) {
+        tags.push({tag: this.state.videos[i].video_tags[j]});
+      }
+    }
+
+    let results = Utilities.occurrenceCounter(tags, "tag");
+
+    let results_length = (results) ? results.length : 0;
+    let minimum_quantity = 2;
+    if (results_length >= minimum_quantity) {
+      this.setState({enough_tags: true});
+
+      results.sort(function(a, b) { return b.quantity - a.quantity; });
+
+      let max = 15;
+
+      if (results_length > max) {
+
+        results.splice(max);
+      }
+
+      let labels = [];
+      for (var i = 0, l_length = results.length; i < l_length; i++) {
+        labels.push(results[i].tag);
+      }
+
+
+      let quantities = [];
+      for (var i = 0, q_length = results.length; i < q_length; i++) {
+        quantities.push(results[i].quantity);
+      }
+
+
+      var ctx = this.tagsBarChar;
+
+      var barChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'number of tags',
+            data: quantities,
+            backgroundColor: this.state.backgroundColors,
+            borderColor: this.state.borderColors,
+            borderWidth: 1,
+            barPercentage: 0.5,
+            barThickness: 'flex',
+            maxBarThickness: 25,
+            minBarLength: 2,
+            gridLines: {
+              offsetGridLines: true
+            }
+          }]
+        },
+        options: {
+          title: {
+  					display: true,
+  					text: this.labels.mct
+          },
+          scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true,
+                  callback: function(label, index, labels) {
+
+                         if (Math.floor(label) === label) {
+                             return label;
+                         }
+
+                  }
+                }
+              }]
+          }
+        }
+      });
     }
   }
 
@@ -589,7 +740,7 @@ class Metrics extends Component {
       var days = [];
       var x_y_data = [];
       var unique_days = [];
-      var max_days = 28;
+      var max_days = this.max_days;
 
       function getStartDay(ms) {
         var start = new Date(ms);
@@ -772,12 +923,17 @@ class Metrics extends Component {
           scales: {
               xAxes: [{
                   type: 'time'
+              }],
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
               }]
           },
 
           title: {
   					display: true,
-  					text: 'Genre viewing over the past ' + max_days + ' days:'
+  					text: this.labels.gvotpd
           },
           tooltips: {
             callbacks: {
@@ -846,7 +1002,7 @@ class Metrics extends Component {
           options: {
             title: {
     					display: true,
-    					text: 'Genre Pie Chart:'
+    					text: this.labels.gpc
             },
             tooltips: {
               callbacks: {
@@ -861,45 +1017,67 @@ class Metrics extends Component {
     }
   }
 
+  scrollingTo(ref) {
+    if (ref === "top") {
+      window.scrollTo(0, 0);
+    } else {
+      let offset = this[ref].current.getBoundingClientRect();
+      window.scrollTo(0, offset.top);
+    }
+  }
+
+  createMenu() {
+    return Object.keys(this.labels).map((label) => {
+      if (this[label].current) {
+        return (
+          <li key={label}><a onClick={() => this.scrollingTo(label)}>{this.labels[label].replace(/:/ig, "")}</a></li>
+        )
+      }
+    })
+  }
+
   render() {
-    let canvas_styling = {
-      height: '25vh',
-      width: '50vw'
-    };
-    let charts_container = {
-      float: 'left'
-    };
-    const { mp_genre, videos, enough_stars, enough_five_stars, enough_history } = this.state;
+    const { videos, enough_stars, enough_five_stars, enough_history, enough_tags, loaded } = this.state;
     return (
       <div>
-        <Ui currentLoc={"metrics"} colorData={this.props.colorData}></Ui>
-        <hr />
         { videos.length > 0 ?
         <div>
-          <h3>Your metrics:</h3>
-          <hr/>
-          <div style={charts_container}>
-            <h3>Most popular genre:</h3>
-            {mp_genre}
-            <hr/>
-            <canvas ref={yearsBarChar => this.yearsBarChar = yearsBarChar} style={canvas_styling}></canvas>
-            <hr/>
-            <canvas ref={decadesBarChar => this.decadesBarChar = decadesBarChar} style={canvas_styling}></canvas>
-            <hr/>
-            <canvas ref={bandsBarChar => this.bandsBarChar = bandsBarChar} style={canvas_styling}></canvas>
-            <hr/>
-            { enough_five_stars === true ? <div>
-            <canvas ref={fiveStarsBarChar => this.fiveStarsBarChar = fiveStarsBarChar} style={canvas_styling}></canvas><hr/></div> : "" }
-            { enough_stars === true ? <div>
-            <canvas ref={ratingsBarChar => this.ratingsBarChar = ratingsBarChar} style={canvas_styling}></canvas><hr/></div> : "" }
-            { enough_history === true ? <div>
-            <canvas ref={genreLineChar => this.genreLineChar = genreLineChar} style={canvas_styling}></canvas>
-            <hr/></div> : "" }
-            <canvas ref={genrePieChar => this.genrePieChar = genrePieChar} style={canvas_styling}></canvas>
-            <canvas ref={genreCanvas => this.genreCanvas = genreCanvas} width="400" height="400"></canvas>
+          <div>
+            <div>
+              <h3>Metrics:</h3>
+              { loaded === true ? <ul>{this.createMenu()}</ul> : ""}
+            </div>
+            <div className="ui" ref={this.mpg}>
+              <canvas ref={genreBarChar => this.genreBarChar = genreBarChar} height="25% !important" width="70% !important"></canvas>
+            </div>
+            <div className="ui" ref={this.mpy}>
+              <canvas ref={yearsBarChar => this.yearsBarChar = yearsBarChar} height="25% !important" width="70% !important"></canvas>
+            </div>
+            <div className="ui" ref={this.mpd}>
+              <canvas ref={decadesBarChar => this.decadesBarChar = decadesBarChar} height="25% !important" width="70% !important"></canvas>
+            </div>
+            <div className="ui" ref={this.mpb}>
+              <canvas ref={bandsBarChar => this.bandsBarChar = bandsBarChar} height="25% !important" width="70% !important"></canvas>
+            </div>
+            { enough_five_stars === true ? <div className="ui" ref={this.bmwfsv}>
+            <canvas ref={fiveStarsBarChar => this.fiveStarsBarChar = fiveStarsBarChar} height="25% !important" width="70% !important"></canvas></div> : "" }
+            { enough_stars === true ? <div className="ui" ref={this.hrb}>
+            <canvas ref={rankingsBarChar => this.rankingsBarChar = rankingsBarChar} height="25% !important" width="70% !important"></canvas></div> : "" }
+            { enough_tags === true ? <div className="ui" ref={this.mct}>
+              <canvas ref={tagsBarChar => this.tagsBarChar = tagsBarChar} height="25% !important" width="70% !important"></canvas>
+            </div> : "" }
+            { enough_history === true ? <div className="ui" ref={this.gvotpd}>
+            <canvas ref={genreLineChar => this.genreLineChar = genreLineChar} height="25% !important" width="70% !important"></canvas>
+            </div> : "" }
+            <div className="ui" ref={this.gpc}>
+              <canvas ref={genrePieChar => this.genrePieChar = genrePieChar} height="25% !important" width="70% !important"></canvas>
+            </div>
           </div>
+          <button onClick={() => this.scrollingTo("top")}>Top</button>
         </div>
-        : <div><h3>Add videos to view your metrics.</h3></div> }
+        : <div>
+            { loaded === true ? <h3>Add videos to view your metrics.</h3> : "" }
+          </div> }
       </div>
     )
   }

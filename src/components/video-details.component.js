@@ -1,11 +1,6 @@
-/*
-The video-details subcomponent provides the user an interface for displaying data in the videos.db
-NeDB database for each individual video.
-*/
-
 import React, {Component} from 'react';
-import {Link} from 'react-router-dom';
 import ReactHtmlParser from 'react-html-parser';
+import memoize from "memoize-one";
 import VideoUpdate from './video-update-component';
 import RateStars from './rate-stars-component.js';
 const remote = window.require('electron').remote;
@@ -13,14 +8,14 @@ const remote = window.require('electron').remote;
 class VideoDetails extends Component {
   constructor(props) {
     super(props);
-    this.loadStars = this.loadStars.bind(this);
 
     this.min_default = this.props.appData.min_year;
     this.max_default = new Date().getFullYear();
 
     this.state = {
       viewing_lyrics: remote.getGlobal('history_viewer').viewing_lyrics,
-      editing_video: false,
+      videoId: remote.getGlobal('history_viewer').video.video_id,
+      editing_video: remote.getGlobal('editing').editing_video,
       stars: ""
     }
   }
@@ -30,17 +25,16 @@ class VideoDetails extends Component {
     this.loadStars();
   }
 
-
-  componentDidUpdate(previousProps, previousState) {
-
-    if (previousProps.videoId !== this.props.videoId) {
-      this.setState({ viewing_lyrics: false });
-      this.loadStars();
-    }
+  componentDidUpdate() {
+    this.compare(this.props.videoId, this.state.videoId);
   }
 
+  compare = memoize(
+    (videoIdProp, videoIdState) => videoIdProp !== videoIdState ? this.setState({ viewing_lyrics: false }, function() { this.loadStars(); remote.getGlobal('history_viewer').viewing_lyrics = false; }) : videoIdState
+  );
+
   loadStars() {
-    let stars = this.props.displayVideo.video_stars;
+    let stars = this.props.displayVideo !== null ? this.props.displayVideo.video_stars : "";
     this.setState({ stars: stars });
   }
 
@@ -71,13 +65,35 @@ class VideoDetails extends Component {
 
 
   runTagSearch(tag) {
+    this.props.searchVideos({title: "", band: "", mintomax: this.min_default, maxtomin: this.max_default, genre: null, lyrics: "", ifyears: false, tag: [{value: tag, label: tag}], stars: null, key_press: true});
 
-    this.props.searchVideos({video_title: "", band: "", mintomax: this.min_default, maxtomin: this.max_default, genre: "", lyrics: "", ifyears: false, tag: tag, stars: ""});
+    remote.getGlobal('search').search_hidden = "searching";
+    remote.getGlobal('search').tag_search = true;
+    remote.getGlobal('search').search_arguments.title.field = "";
+    remote.getGlobal('search').search_arguments.band.field = "";
+    remote.getGlobal('search').search_arguments.genre.field = null;
+    remote.getGlobal('search').search_arguments.lyrics.field = "";
+    remote.getGlobal('search').search_arguments.mintomax.field = "";
+    remote.getGlobal('search').search_arguments.maxtomin.field = "";
+    remote.getGlobal('search').search_arguments.tag.field = [{value: tag, label: tag}];
+    remote.getGlobal('search').search_arguments.stars.field = null;
+    remote.getGlobal('search').search_arguments.field = "";
   }
 
   runBandSearch(band) {
+    this.props.searchVideos({title: "", band: band, mintomax: this.min_default, maxtomin: this.max_default, genre: null, lyrics: "", ifyears: false, tag: null, stars: null, key_press: true});
 
-    this.props.searchVideos({video_title: "", band: band, mintomax: this.min_default, maxtomin: this.max_default, genre: "", lyrics: "", ifyears: false, tag: "", stars: ""});
+    remote.getGlobal('search').search_hidden = "searching";
+    remote.getGlobal('search').band_search = true;
+    remote.getGlobal('search').search_arguments.title.field = "";
+    remote.getGlobal('search').search_arguments.band.field = band;
+    remote.getGlobal('search').search_arguments.genre.field = null;
+    remote.getGlobal('search').search_arguments.lyrics.field = "";
+    remote.getGlobal('search').search_arguments.mintomax.field = "";
+    remote.getGlobal('search').search_arguments.maxtomin.field = "";
+    remote.getGlobal('search').search_arguments.tag.field = null;
+    remote.getGlobal('search').search_arguments.stars.field = null;
+    remote.getGlobal('search').search_arguments.field = "";
   }
 
   cancelEdit() {
@@ -87,8 +103,10 @@ class VideoDetails extends Component {
   editVideo() {
 
     if (this.state.editing_video === false) {
+      remote.getGlobal('editing').editing_video = true;
       this.setState({ editing_video: true });
     } else {
+      remote.getGlobal('editing').editing_video = false;
       this.setState({ editing_video: false });
     }
   }
@@ -118,12 +136,11 @@ class VideoDetails extends Component {
   render() {
     const { viewing_lyrics, editing_video } = this.state;
 
-
-    if (Object.keys(this.props.displayVideo).length > 0) {
+    if (this.props.displayVideo !== null && Object.keys(this.props.displayVideo).length > 0) {
       if (editing_video === false) {
       return (
-        <div>
-          <h3>{this.props.displayVideo.video_title} (<a onClick={this.runBandSearch.bind(this, "\"" + this.props.displayVideo.video_band + "\"")}>{this.props.displayVideo.video_band}</a>) <button onClick={() => this.props.deSelect()}>Hide</button> <button onClick={() => this.props.deleteVideo(this.props.videoId)}>Delete</button></h3>
+        <div className="ui">
+          <h3>{this.props.displayVideo.video_title} (<a onClick={this.runBandSearch.bind(this, this.props.displayVideo.video_band)}>{this.props.displayVideo.video_band}</a>) <div className="float_right"><button onClick={() => this.props.deSelect()}>Hide</button> <button onClick={() => this.props.deleteVideo(this.props.videoId)}>Delete</button></div></h3>
           <div>
               <RateStars starsAmount={this.state.stars} starChange={this.starChange.bind(this)}></RateStars>
           </div>
@@ -133,7 +150,7 @@ class VideoDetails extends Component {
             {this.genIframe()}
           </div>
           <div>
-          <button onClick={this.editVideo.bind(this)}>Edit</button>
+          <button onClick={this.editVideo.bind(this)}>Edit</button> <button onClick={this.props.refreshVideo}>Refresh</button>
           {
             (this.state.viewing_lyrics === false && this.props.displayVideo.video_lyrics[0] !== "") ? <button onClick={() => this.viewHideLyrics()}>View Lyrics</button> : (this.state.viewing_lyrics === true && this.props.displayVideo.video_lyrics[0] !== "") ? <button onClick={() => this.viewHideLyrics()}>Hide Lyrics</button> : ""
           }
@@ -145,7 +162,7 @@ class VideoDetails extends Component {
       )
       } else {
         return (
-          <VideoUpdate videoId={this.props.videoId} updateVideo={this.props.updateVideo} displayVideo={this.props.displayVideo} editStatus={this.editVideo.bind(this)} cancelEdit={this.cancelEdit.bind(this)} focusOn={this.props.focusOn} focusOut={this.props.focusOut} appData={this.props.appData}></VideoUpdate>
+          <VideoUpdate videoId={this.props.videoId} updateVideo={this.props.updateVideo} displayVideo={this.props.displayVideo} editStatus={this.editVideo.bind(this)} cancelEdit={this.cancelEdit.bind(this)} appData={this.props.appData} cssTemplate={this.props.cssTemplate}></VideoUpdate>
         )
       }
     } else {

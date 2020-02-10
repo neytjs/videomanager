@@ -1,23 +1,21 @@
-/*
-The video-update subcomponent provides the user an interface for updating data in the videos.db
-NeDB database that holds their videos data.
-*/
-
 import React, {Component} from 'react';
+import memoize from "memoize-one";
 import Utilities from './js/utilities.js';
 import SelectYear from './select-year-component';
 import SelectGenre from './select-genre-component';
 import SelectType from './select-type-component';
+import Editor from './editor-component';
+const remote = window.require('electron').remote;
 
 class VideoUpdate extends Component {
   constructor(props) {
     super(props);
+    this.pressEnter = this.pressEnter.bind(this);
     this.video_title = React.createRef();
     this.video_code = React.createRef();
     this.video_band = React.createRef();
-    this.lyrics_text = React.createRef();
-    this.onpasteholder = React.createRef();
     this.tag = React.createRef();
+    this.CKEditor = React.createRef();
 
     this.state = {
       video_title: props.displayVideo.video_title,
@@ -29,69 +27,128 @@ class VideoUpdate extends Component {
       video_type: props.displayVideo.video_type,
       video_tags: props.displayVideo.video_tags,
       video_stars: props.displayVideo.video_stars,
-      tag: ""
+      _id: props.displayVideo._id,
+      tag: "",
+      editing: false
     }
   }
 
   componentDidMount() {
-    this.lyrics_text.innerHTML = this.state.video_lyrics_html;
+    remote.getGlobal('enterTracker').tag_insert_tracker = false;
+    remote.getGlobal('enterTracker').component_tracker = "update";
+    document.addEventListener("keydown", this.pressEnter, false);
   }
 
+  componentDidUpdate() {
 
-  componentWillReceiveProps(nextProps) {
+    if (this.state.editing === false) {
+      this.compareUpdate(this.props.displayVideo, this.state);
+    }
 
-    if (nextProps.displayVideo.video_title !== this.state.video_title || nextProps.displayVideo.video_code !== this.state.video_code || nextProps.displayVideo.video_band !== this.state.video_band || nextProps.displayVideo.video_year !== this.state.video_year || nextProps.displayVideo.video_lyrics_html !== this.state.video_lyrics_html || nextProps.displayVideo.video_genre !== this.state.video_genre || nextProps.displayVideo.video_type !== this.state.video_type  || nextProps.displayVideo.video_tags !== this.state.video_tags) {
-      this.setState({ video_title: nextProps.displayVideo.video_title, video_code: nextProps.displayVideo.video_code, video_band: nextProps.displayVideo.video_band, video_year: nextProps.displayVideo.video_year, video_lyrics_html: nextProps.displayVideo.video_lyrics_html, video_genre: nextProps.displayVideo.video_genre, video_type: nextProps.displayVideo.video_type, video_tags: nextProps.displayVideo.video_tags }, () => {
-
-        this.lyrics_text.innerHTML = this.state.video_lyrics_html;
-
-        this.video_title.value = this.state.video_title;
-        this.video_code.value = this.state.video_code;
-        this.video_band.value = this.state.video_band;
-        this.tag.value = "";
-      });
+    if (this.props.displayVideo._id !== this.state._id) {
+      this.props.cancelEdit();
     }
   }
 
-  handleSubmit(e) {
+  componentWillUnmount() {
+    remote.getGlobal('editing').editing_video = false;
+    remote.getGlobal('enterTracker').tag_insert_tracker = false;
+    remote.getGlobal('enterTracker').component_tracker = "";
+    document.removeEventListener("keydown", this.pressEnter, false);
+  }
 
-    if (this.state.video_code === "" || this.state.video_title === "" || this.state.video_band === "" || this.state.video_year === "" || this.state.video_genre === "" || this.state.video_type === "") {
+  pressEnter(event) {
+    if (event.keyCode === 13 && remote.getGlobal('enterTracker').tag_insert_tracker === false && remote.getGlobal('enterTracker').component_tracker === "update") {
+      this.handleSubmit();
+    } else if (event.keyCode === 13 && remote.getGlobal('enterTracker').tag_insert_tracker === true && remote.getGlobal('enterTracker').component_tracker === "update") {
+      this.addTag();
+    }
+  }
+
+  compare = memoize(
+    (focusedProp, focusedState) => focusedProp !== focusedState ? focusedProp : focusedState
+  );
+
+
+
+
+
+  compareUpdate = memoize(
+    (displayVideoProp, displayVideoState) => displayVideoProp.video_title !== displayVideoState.video_title || displayVideoProp.video_code !== displayVideoState.video_code || displayVideoProp.video_band !== displayVideoState.video_band || displayVideoProp.video_year !== displayVideoState.video_year || displayVideoProp.video_lyrics_html !== displayVideoState.video_lyrics_html || displayVideoProp.video_genre !== displayVideoState.video_genre || displayVideoProp.video_type !== displayVideoState.video_type || displayVideoProp.video_tags !== displayVideoState.video_tags || displayVideoProp.video_stars !== displayVideoState.video_stars ? this.setState({ video_title: displayVideoProp.video_title, video_code: displayVideoProp.video_code, video_band: displayVideoProp.video_band, video_year: displayVideoProp.video_year, video_lyrics_html: displayVideoProp.video_lyrics_html, video_genre: displayVideoProp.video_genre, video_type: displayVideoProp.video_type, video_tags: displayVideoProp.video_tags, video_stars: displayVideoProp.video_stars }, () => {
+
+            this.video_title.value = this.state.video_title;
+            this.video_code.value = this.state.video_code;
+            this.video_band.value = this.state.video_band;
+            this.tag.value = "";
+          }) : ""
+  );
+
+  handleSubmit() {
+
+    if (this.video_code.value === "" || this.video_title.value === "" || this.video_band.value === "" || this.state.video_year === "" || this.state.video_genre === "" || this.state.video_type === "") {
       alert("A new title, band, year, genre, type, and video code are required.");
     } else {
 
-      this.props.updateVideo(this.state.video_title, this.state.video_code, this.state.video_band, this.state.video_year, Utilities.removeDangerousTags(this.lyrics_text.innerHTML), this.state.video_genre, this.props.displayVideo.video_code, this.state.video_type, this.state.video_tags, this.state.video_stars);
+      this.props.updateVideo(this.video_title.value, this.video_code.value, this.video_band.value, this.state.video_year, this.CKEditor.editor.getData(), this.state.video_genre, this.props.displayVideo.video_code, this.state.video_type, this.state.video_tags, this.state.video_stars);
 
       this.props.editStatus();
+
+      this.setState({editing: false});
     }
   }
 
 
   handleTitleChange(event) {
-    this.setState({ video_title: event.target.value });
+    this.setState({ video_title: event.target.value, editing: true });
   }
 
   handleCodeChange(event) {
-    this.setState({ video_code: event.target.value });
+    this.setState({ video_code: event.target.value, editing: true });
   }
 
   handleBandChange(event) {
-    this.setState({ video_band: event.target.value });
+    this.setState({ video_band: event.target.value, editing: true });
   }
 
   handleYearChange(event) {
-    this.setState({ video_year: event.target.value });
+    this.setState({ video_year: event.target.value, editing: true }, function() {
+      remote.getGlobal('enterTracker').tag_insert_tracker = false;
+      remote.getGlobal('enterTracker').component_tracker = "update";
+    });
+  }
+
+  handle_video_lyrics_html_Change(event) {
+    this.setState({ video_lyrics_html: event.editor.getData(), editing: true }, function() {
+      remote.getGlobal('enterTracker').component_tracker = "update";
+    });
   }
 
   handleGenreChange(event) {
-    this.setState({ video_genre: event.target.value });
+    this.setState({ video_genre: event.target.value, editing: true }, function() {
+      remote.getGlobal('enterTracker').tag_insert_tracker = false;
+      remote.getGlobal('enterTracker').component_tracker = "update";
+    });
   }
 
   handleTypeChange(event) {
-    this.setState({ video_type: event.target.value });
+    this.setState({ video_type: event.target.value, editing: true }, function() {
+      remote.getGlobal('enterTracker').tag_insert_tracker = false;
+      remote.getGlobal('enterTracker').component_tracker = "update";
+    });
   }
 
   handle_tags_Change(event) {
-    this.setState({ tag: event.target.value });
+    this.setState({ tag: event.target.value, editing: true });
+  }
+
+  handle_tracker_onClick() {
+    remote.getGlobal('enterTracker').tag_insert_tracker = false;
+    remote.getGlobal('enterTracker').component_tracker = "update";
+  }
+
+  handle_tracker_tags_onClick() {
+    remote.getGlobal('enterTracker').tag_insert_tracker = true;
+    remote.getGlobal('enterTracker').component_tracker = "update";
   }
 
 
@@ -102,38 +159,6 @@ class VideoUpdate extends Component {
       document.execCommand('insertHTML', false, '&#009');
 
       e.preventDefault();
-    }
-  }
-
-  handlePaste(event) {
-
-    event.stopPropagation();
-    event.preventDefault();
-
-
-    let clipboardData = event.clipboardData || window.clipboardData;
-    let pastedData = clipboardData.getData('text/html');
-
-    this.onpasteholder.innerHTML = pastedData;
-    Utilities.htmlTagStyleCleaner(this.onpasteholder.getElementsByTagName('*'));
-
-    var span = document.createElement('span');
-    span.innerHTML = this.onpasteholder.innerHTML;
-
-
-    if (window.getSelection) {
-
-
-      var sel = window.getSelection();
-      if (sel.getRangeAt && sel.rangeCount) {
-        var range = sel.getRangeAt(0);
-        range.insertNode(span);
-        range = range.cloneRange();
-        range.selectNodeContents(span);
-        range.collapse(false);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
     }
   }
 
@@ -159,13 +184,16 @@ class VideoUpdate extends Component {
     this.state.video_tags.splice(i, 1);
 
     this.setState(state);
+
+    remote.getGlobal('enterTracker').tag_insert_tracker = false;
+    remote.getGlobal('enterTracker').component_tracker = "update";
   }
 
 
   addTag(e) {
     let new_tag = this.tag.value;
 
-    new_tag = new_tag.replace(/[^A-Za-z0-9\s]/g,'');
+    new_tag = Utilities.keepAllLettersNumbers(new_tag);
 
     new_tag = new_tag.trim();
 
@@ -195,31 +223,39 @@ class VideoUpdate extends Component {
         this.setState(state);
 
         this.setState({tag: ""});
+        this.tag.value = "";
+
+        this.tag.blur();
+        remote.getGlobal('enterTracker').tag_insert_tracker = false;
+        remote.getGlobal('enterTracker').component_tracker = "update";
       } else {
         alert("You have already entered that tag for this video.");
       }
+    } else {
+      remote.getGlobal('enterTracker').component_tracker = "update";
+      this.handleSubmit();
     }
   }
 
   render() {
+    const { video_lyrics_html } = this.state;
     return (
-      <div>
-        New title: <input type="text" ref={video_title => this.video_title = video_title} defaultValue={this.state.video_title} onBlur={this.handleTitleChange.bind(this)} />
+      <div className="ui">
+        New title: <input type="text" ref={video_title => this.video_title = video_title} defaultValue={this.state.video_title} onBlur={this.handleTitleChange.bind(this)} onClick={this.handle_tracker_onClick.bind(this)} />
         <br/>
-        New video code: <input type="text" ref={video_code => this.video_code = video_code} defaultValue={this.state.video_code} onBlur={this.handleCodeChange.bind(this)} />
+        New video code: <input type="text" ref={video_code => this.video_code = video_code} defaultValue={this.state.video_code} onBlur={this.handleCodeChange.bind(this)} onClick={this.handle_tracker_onClick.bind(this)} />
         <br/>
-        New band: <input type="text" ref={video_band => this.video_band = video_band} defaultValue={this.state.video_band} onBlur={this.handleBandChange.bind(this)} />
+        New band: <input type="text" ref={video_band => this.video_band = video_band} defaultValue={this.state.video_band} onBlur={this.handleBandChange.bind(this)} onClick={this.handle_tracker_onClick.bind(this)} />
         <br/>
         New year: <SelectYear insertFunction={this.handleYearChange.bind(this)} insertValue={this.state.video_year} minimumYear="1960" minOrMax="maxtomin" appData={this.props.appData}></SelectYear>
         <br/>
-        New lyrics: <div className="editor" ref={lyrics_text => this.lyrics_text = lyrics_text} onKeyDown={this.handleTabKey} onPaste={this.handlePaste.bind(this)} onFocus={this.props.focusOn} onBlur={this.props.focusOut} contentEditable></div>
-        <div className="onpasteholder" ref={onpasteholder => this.onpasteholder = onpasteholder}></div>
+        <Editor editorData={video_lyrics_html} handleEditorChange={this.handle_video_lyrics_html_Change.bind(this)} theRef={CKEditor => this.CKEditor = CKEditor} cssTemplate={this.props.cssTemplate}></Editor>
         <br/>
         New genre: <SelectGenre insertFunction={this.handleGenreChange.bind(this)} insertValue={this.state.video_genre} appData={this.props.appData}></SelectGenre>
         <br/>
         New type: <SelectType insertFunction={this.handleTypeChange.bind(this)} insertValue={this.state.video_type} appData={this.props.appData}></SelectType>
         <br/>
-        New tags: {this.displayingEditableTags()}  <input type="text" ref={tag => this.tag = tag} onBlur={this.handle_tags_Change.bind(this)} defaultValue={this.state.tag} /> <button onClick={this.addTag.bind(this)}>Add Tag</button>
+        New tags: {this.displayingEditableTags()}  <input type="text" ref={tag => this.tag = tag} onBlur={this.handle_tags_Change.bind(this)} defaultValue={this.state.tag} onClick={this.handle_tracker_tags_onClick.bind(this)} /> <button onClick={this.addTag.bind(this)}>Add Tag</button>
         <br/>
         <button onClick={this.handleSubmit.bind(this)}>Save</button> <button onClick={this.props.cancelEdit}>Cancel</button>
       </div>

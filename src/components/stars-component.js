@@ -1,8 +1,3 @@
-/*
-This is a minor subcomponent for displaying the correct amount of stars for each video in the
-video-list component.
-*/
-
 import React, {Component} from 'react';
 
 class Stars extends Component {
@@ -23,6 +18,7 @@ class Stars extends Component {
         stars.push("☆");
       }
     }
+
 
     return (
       <div>{stars.join("")}</div>
