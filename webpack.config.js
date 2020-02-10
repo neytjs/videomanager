@@ -1,39 +1,41 @@
-/*
-webpack.config.js is a configuration file used by webpack that designates the desired webpack
-functionality, stating which loaders to include (e.g. for css, json, etc). It also sets the entry
-of the app being bundled and where the output (i.e. the bundled javascript file) should be placed.
-https://webpack.js.org/configuration/
-*/
-
-var path = require('path');
-var webpack = require('webpack');
+const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   entry: ["babel-polyfill", './src/app.js'],
-  output: {path: './dist', filename: 'bundle.js' },
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.js'
+  },
+
+  resolve: {
+    extensions: ['.js', '.jsx', '.css', '.json']
+  },
 
   module: {
-    loaders: [
+    rules: [
       {
         test: /.jsx?$/,
         loader: 'babel-loader',
         exclude: /node_modules/,
-        query: {
-          presets: ['es2015', 'es2017', 'react']
+        options: {
+          presets: [
+            "@babel/env",
+            "@babel/react"
+          ],
+          plugins: [
+            "@babel/plugin-proposal-function-bind",
+            "@babel/plugin-proposal-class-properties"
+          ]
         }
       },
       {
         test: /.css?$/,
-        loader: 'style-loader!css-loader'
+        use: [
+            { loader: "style-loader" },
+            { loader: "css-loader" }
+        ]
       },
-      {
-        test: /\.json$/,
-        loader: 'json-loader'
-      }
     ]
-  },
-
-  node: {
-    fs: 'empty'
   }
 };
