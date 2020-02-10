@@ -227,7 +227,7 @@ class VideoList extends Component {
       let stars = searchArgs.stars;
       let key_press = (searchArgs.key_press) ? searchArgs.key_press : false;
 
-      if (video_title !== "" || band !== "" || genre !== null || lyrics !== "" || tag !== null || stars !== null) {
+      if (video_title !== "" || band !== "" || genre !== null || lyrics !== "" || tag !== null || stars !== null || ifyears !== false) {
 
         this.setState({loading: true});
 
