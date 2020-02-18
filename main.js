@@ -23,7 +23,8 @@ app.on('ready', () => {
 		global.history_viewer = {
 			video: {},
 			viewing_lyrics: false,
-			history_clicked: false
+			history_clicked: false,
+			just_added: false
 		}
 		global.search = {
 		 	view_all: true,
@@ -62,7 +63,8 @@ app.on('ready', () => {
 			just_inserted_code: ""
 		}
 		global.editing = {
-			editing_video: false
+			editing_video: false,
+			loc: 0
 		}
 		global.analysis = {
 			year_start: 0,
@@ -235,11 +237,12 @@ app.on('window-all-closed', () => {
 	global.history_viewer = {
 		video: {},
 		viewing_lyrics: false,
-		history_clicked: false
+		history_clicked: false,
+		just_added: false
 	}
 
 	global.search = {
-	 	view_all: true,
+		view_all: true,
 		search_hidden: "none",
 		prev_view: "none",
 		sorted: "",
@@ -247,7 +250,7 @@ app.on('window-all-closed', () => {
 		history: false,
 		updated: false,
 		page: 1,
-	 	search_arguments: {
+		search_arguments: {
 			title: { field: "", searched: "" },
 			band: { field: "", searched: "" },
 			genre: { field: null, searched: null },
@@ -277,7 +280,8 @@ app.on('window-all-closed', () => {
 	}
 
 	global.editing = {
-		editing_video: false
+		editing_video: false,
+		loc: 0
 	}
 
 	global.analysis = {
