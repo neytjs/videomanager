@@ -154,14 +154,17 @@ class App extends Component {
     }.bind(this));
     ipcRenderer.on('view', function(event, response) {
       remote.getGlobal('search').search_hidden = "none";
+      remote.getGlobal('search').prev_view = "none";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('search', function(event, response) {
       remote.getGlobal('search').search_hidden = "searching";
+      remote.getGlobal('search').prev_view = "searching";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('add', function(event, response) {
       remote.getGlobal('search').search_hidden = "adding";
+      remote.getGlobal('search').prev_view = "adding";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('history', function(event, response) {
@@ -288,6 +291,7 @@ class App extends Component {
           let setView = () => {
             if (remote.getGlobal('search').search_hidden === status) {
               remote.getGlobal('search').search_hidden = "none";
+              remote.getGlobal('search').prev_view = "none";
               this.setState({ view_or_add: "view" });
             } else {
               if (status === "analysis" || status === "metrics" || status === "history") {

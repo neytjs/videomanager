@@ -36,16 +36,7 @@ class VideoList extends Component {
 
   async componentDidMount() {
     let loading = await this.viewAll();
-    this.setState({ loading: loading }, function() {
-      if (this.state.history === true && remote.getGlobal('search').view_all !== false) {
-        let offset = this.state.videoRef.current.getBoundingClientRect();
-        window.scrollTo(0, offset.top);
-        this.setState({ history: false }, function() {
-          remote.getGlobal('search').history = false;
-          remote.getGlobal('search').updated = false;
-        });
-      }
-    });
+    this.setState({ loading: loading });
   }
 
 
@@ -53,12 +44,15 @@ class VideoList extends Component {
 
     if (remote.getGlobal('history_viewer').video.video_id) {
       let just_added = false;
-      if (remote.getGlobal('history_viewer').history_clicked === true) {
-        just_added = true;
+      let history_clicked = false;
+      if (remote.getGlobal('history_viewer').history_clicked === true || remote.getGlobal('history_viewer').just_added === true) {
+        just_added = remote.getGlobal('history_viewer').just_added;
+        history_clicked = remote.getGlobal('history_viewer').history_clicked;
 
         this.setState({ history: true });
 
         remote.getGlobal('history_viewer').history_clicked = false;
+        remote.getGlobal('history_viewer').just_added = false;
 
         if (remote.getGlobal('search').prev_view !== "none") {
           remote.getGlobal('search').search_hidden = remote.getGlobal('search').prev_view;
@@ -69,6 +63,9 @@ class VideoList extends Component {
 
       this.props.videos_shortterm.findOne({_id: id}, function(err, video) {
         if (just_added === false) {
+
+          this.displayVideo(video, id, 0);
+        } else if (history_clicked === true && remote.getGlobal('search').view_all === false) {
 
           this.displayVideo(video, id, 0);
         } else {
@@ -123,7 +120,7 @@ class VideoList extends Component {
 
               remote.getGlobal('history_viewer').video.video_id = vid._id;
 
-              remote.getGlobal('history_viewer').history_clicked = true;
+              remote.getGlobal('history_viewer').just_added = true;
 
               this.loadVideoFromHistory();
             }.bind(this));
@@ -169,6 +166,7 @@ class VideoList extends Component {
           } else {
 
             this.setState({loading: false});
+            remote.getGlobal('interfaceClick').clicked = false;
             resolve(false);
           }
         }.bind(this));
@@ -194,10 +192,11 @@ class VideoList extends Component {
       this.setState({selected_video: vid, video_id: id, video_el: el, displaying: true}, function() {
 
         if (from_list === true) {
+          this.scrollControl("videoRef");
+        }
 
-          window.scrollTo(0, 0);
-          let offset = this.state.videoRef.current.getBoundingClientRect();
-          window.scrollTo(0, offset.top);
+        if (remote.getGlobal('editing').loc !== 0 && remote.getGlobal('search').view_all !== false) {
+          this.scrollControl("edit_loc");
         }
       });
     }
@@ -232,6 +231,7 @@ class VideoList extends Component {
         this.setState({loading: true});
 
         remote.getGlobal('search').view_all = false;
+        remote.getGlobal('search').prev_view = "searching";
         remote.getGlobal('search').search_arguments.title.searched = video_title;
         remote.getGlobal('search').search_arguments.band.searched = band;
         remote.getGlobal('search').search_arguments.genre.searched = genre;
@@ -311,14 +311,16 @@ class VideoList extends Component {
 
             docs = paginate_data.viewable_videos;
 
-            this.setState({videos: docs, start: paginate_data.start});
+            this.setState({videos: docs, start: paginate_data.start}, function() {
 
-            this.searchString(video_title, band, mintomax, maxtomin, genres, lyrics, ifyears, tags, stars_ratings, key_press);
+              this.searchString(video_title, band, mintomax, maxtomin, genres, lyrics, ifyears, tags, stars_ratings, key_press);
+            });
           } else {
 
-            this.searchString(video_title, band, mintomax, maxtomin, genres, lyrics, ifyears, tags, stars_ratings, key_press);
+            this.setState({videos: docs, counter: this.state.videos.length}, function() {
 
-            this.setState({videos: docs, counter: this.state.videos.length});
+              this.searchString(video_title, band, mintomax, maxtomin, genres, lyrics, ifyears, tags, stars_ratings, key_press);
+            });
           }
         }.bind(this));
       }
@@ -482,8 +484,12 @@ class VideoList extends Component {
     this.setState({search: search_string, search_hidden: remote.getGlobal('search').search_hidden, loading: false}, function() {
 
       if (this.state.history === true || remote.getGlobal('search').updated === true) {
-        let offset = this.state.videoRef.current.getBoundingClientRect();
-        window.scrollTo(0, offset.top);
+
+        if (remote.getGlobal('editing').loc !== 0) {
+          this.scrollControl("edit_loc");
+        } else {
+          this.scrollControl("videoRef");
+        }
         this.setState({ history: false }, function() {
           remote.getGlobal('search').history = false;
           remote.getGlobal('search').updated = false;
@@ -491,12 +497,11 @@ class VideoList extends Component {
       } else {
 
         if (remote.getGlobal('interfaceClick').clicked === true && key_press === false) {
-          window.scrollTo(0, 0);
+          this.scrollControl("top");
 
           remote.getGlobal('interfaceClick').clicked = false;
         } else {
-          let offset = this.state.searchRef.current.getBoundingClientRect();
-          window.scrollTo(0, offset.top);
+          this.scrollControl("searchRef");
         }
       }
     });
@@ -645,8 +650,7 @@ class VideoList extends Component {
     state.selected_video.video_tags = new_tags;
     state.selected_video.video_stars = new_stars;
 
-
-    remote.getGlobal('search').history = true;
+    remote.getGlobal('editing').loc = window.pageYOffset;
 
     remote.getGlobal('search').updated = true;
 
@@ -669,7 +673,7 @@ class VideoList extends Component {
     remote.getGlobal('search').prev_view = (display === "none") ? display : remote.getGlobal('search').prev_view;
     remote.getGlobal('search').search_hidden = display;
     this.setState({ search_hidden: display });
-    window.scrollTo(0, 0);
+    this.scrollControl("top");
   }
 
   refreshVideo() {
@@ -679,8 +683,27 @@ class VideoList extends Component {
     });
   }
 
-  scrollTop() {
-    window.scrollTo(0, 0);
+  scrollControl(position) {
+
+    if (position === "top_click") {
+      window.scrollTo(0, 0);
+    } else {
+      setTimeout(function() {
+        if (position === "top") {
+          window.scrollTo(0, 0);
+        } else if (position === "searchRef") {
+          let offset = this.state.searchRef.current.getBoundingClientRect();
+          window.scrollTo(0, offset.top);
+        } else if (position === "videoRef") {
+          window.scrollTo(0, 0);
+          let offset = this.state.videoRef.current.getBoundingClientRect();
+          window.scrollTo(0, offset.top);
+        } else if (position === "edit_loc") {
+          window.scrollTo(0, remote.getGlobal('editing').loc);
+          remote.getGlobal('editing').loc = 0;
+        }
+      }.bind(this), 300);
+    }
   }
 
   videosSorter(videos, ascdesc, sort_symbol, theader_call) {
@@ -993,7 +1016,7 @@ class VideoList extends Component {
                 <Table videos={this.state.videos} table={"main"} displayVideo={this.displayVideo.bind(this)} addToHistory={this.props.addToHistory} videosSorter={this.videosSorter.bind(this)}></Table>
                 { this.createPageNumbers() }
                 <br/>
-                { (counter > 15 || (search_hidden === "searching" && counter > 6 || search_hidden === "adding" && counter > 1 )) ? <button onClick={this.scrollTop}>Top</button> : ""}
+                { (counter > 15 || (search_hidden === "searching" && counter > 6 || search_hidden === "adding" && counter > 1 )) ? <button onClick={() => this.scrollControl("top_click")}>Top</button> : ""}
               </div>
              : "" }
           </div>
