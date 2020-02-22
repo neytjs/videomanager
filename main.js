@@ -47,7 +47,8 @@ app.on('ready', () => {
 				ifyears: true
 			},
 			tag_search: false,
-			band_search: false
+			band_search: false,
+			band_search_clicked: false
 		}
 		global.add = {
 			message: "",
@@ -262,7 +263,8 @@ app.on('window-all-closed', () => {
 			ifyears: true
 		},
 		tag_search: false,
-		band_search: false
+		band_search: false,
+		band_search_clicked: false
 	}
 
 	global.add = {
