@@ -123,6 +123,23 @@ class Utilities {
       }
   }
 
+  static findExactStringMatches(search, docs, property_name) {
+    let docs_length = docs.length;
+
+    if (search !== "") {
+      let matches = [];
+
+        for (var j = 0; j < docs_length; j++) {
+          if (docs[j][property_name] === search) {
+            matches.push(docs[j]);
+          }
+        }
+
+        return matches;
+      } else {
+        return docs;
+      }
+  }
 
   static customSplit(strng) {
     let test_strng = this.keepAllLettersNumbersQuotes(strng);
