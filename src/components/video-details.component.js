@@ -85,6 +85,7 @@ class VideoDetails extends Component {
 
     remote.getGlobal('search').search_hidden = "searching";
     remote.getGlobal('search').band_search = true;
+    remote.getGlobal('search').band_search_clicked = true;
     remote.getGlobal('search').search_arguments.title.field = "";
     remote.getGlobal('search').search_arguments.band.field = band;
     remote.getGlobal('search').search_arguments.genre.field = null;

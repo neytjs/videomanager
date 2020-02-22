@@ -123,9 +123,9 @@ class VideoList extends Component {
               remote.getGlobal('history_viewer').just_added = true;
 
               this.loadVideoFromHistory();
-            }.bind(this));
 
-            remote.getGlobal('add').just_inserted_code = "";
+              remote.getGlobal('add').just_inserted_code = "";
+            }.bind(this));
           } else {
 
             this.loadVideoFromHistory();
@@ -231,7 +231,7 @@ class VideoList extends Component {
         this.setState({loading: true});
 
         remote.getGlobal('search').view_all = false;
-        remote.getGlobal('search').prev_view = "searching";
+        remote.getGlobal('search').prev_view = remote.getGlobal('add').just_inserted_code !== "" || remote.getGlobal('search').prev_view === "adding" ? "adding" : "searching";
         remote.getGlobal('search').search_arguments.title.searched = video_title;
         remote.getGlobal('search').search_arguments.band.searched = band;
         remote.getGlobal('search').search_arguments.genre.searched = genre;
@@ -294,8 +294,14 @@ class VideoList extends Component {
 
             docs = Utilities.arrayComparerFindAll(search_title.notquotes, docs, "video_title");
             docs = Utilities.arrayComparer(search_title.quotes, docs, "video_title");
-            docs = Utilities.arrayComparerFindAll(search_band.notquotes, docs, "video_band");
-            docs = Utilities.arrayComparer(search_band.quotes, docs, "video_band");
+
+            if (remote.getGlobal('search').band_search_clicked === false) {
+              docs = Utilities.arrayComparerFindAll(search_band.notquotes, docs, "video_band");
+              docs = Utilities.arrayComparer(search_band.quotes, docs, "video_band");
+            } else {
+              docs = Utilities.findExactStringMatches(band, docs, "video_band");
+              remote.getGlobal('search').band_search_clicked = false;
+            }
             docs = Utilities.arrayComparerFindAll(search_lyrics.notquotes, docs, "video_lyrics");
             docs = Utilities.arrayComparer(search_lyrics.quotes, docs, "video_lyrics");
 
