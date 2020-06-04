@@ -130,7 +130,7 @@ class Utilities {
       let matches = [];
 
         for (var j = 0; j < docs_length; j++) {
-          if (docs[j][property_name] === search) {
+          if (docs[j][property_name].toLowerCase() === search.toLowerCase()) {
             matches.push(docs[j]);
           }
         }
