@@ -4,7 +4,7 @@ import SelectYear from './select-year-component';
 import SelectGenre from './select-genre-component';
 import SelectType from './select-type-component';
 import Editor from './editor-component';
-const remote = window.require('electron').remote; 
+const remote = window.require('electron').remote;
 
 class AddVideo extends Component {
   constructor() {
@@ -37,7 +37,7 @@ class AddVideo extends Component {
   }
 
   componentWillUnmount() {
-  
+
     remote.getGlobal('add').title = this.video_title.value;
     remote.getGlobal('add').code = this.video_code.value;
     remote.getGlobal('add').band = this.video_band.value;
@@ -57,19 +57,19 @@ class AddVideo extends Component {
   }
 
   handleSubmit() {
-  
+
     if (this.video_code.value === "" || this.video_title.value === "" || this.video_band.value === "" || this.state.year === "" || this.state.genre === "" || this.state.type === "") {
       alert("A title, band, year, genre, type, and video code are required.");
     } else {
       let callAddVideo = () => {
-      
+
         this.addVideo(this.video_code.value, this.video_title.value, this.video_band.value, this.state.year, this.CKEditor.editor.getData(), this.state.genre, this.state.type, this.state.tags);
       }
 
       if (remote.getGlobal('editing').editing_video === true) {
-      
+
         let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
-      
+
         if (confirm_delete === true) {
           callAddVideo();
         }
@@ -82,23 +82,23 @@ class AddVideo extends Component {
 
   addVideo(code, title, band, year, lyrics, genre, type, tags) {
     let lyrics_html = lyrics;
-  
+
     lyrics = Utilities.htmlStringCleanerArrayConverter(lyrics);
-  
+
     code = code.trim();
     title = title.trim();
     band = band.trim();
-    year = year.trim(); 
-  
+    year = year.trim();
+
     remote.getGlobal('add').just_inserted_code = code;
     remote.getGlobal('search').prev_view = "adding";
-  
+
     this.props.videos.findOne({video_code: code}, function(err, doc) {
-    
+
       if (doc) {
         alert('That video is already in your list!');
-      } else { 
-      
+      } else {
+
         var video = {
           video_title: title,
           video_code: code,
@@ -112,13 +112,13 @@ class AddVideo extends Component {
           video_stars: "0",
           list_id: remote.getGlobal('listTracker').list_id
         };
-      
+
         this.props.videos.insert(video, function(err, docs) {
-        
+
           let output = "You have successfully added " + title + " to your collection.";
-        
+
           this.setState({ code: "", title: "", band: "", year: "", genre: "", lyrics: "", type: "", tag: "", tags: [] });
-        
+
           remote.getGlobal('add').message = output;
           remote.getGlobal('add').title = "";
           remote.getGlobal('add').code = "";
@@ -133,40 +133,41 @@ class AddVideo extends Component {
           this.video_code.value = "";
           this.video_band.value = "";
           this.tag.value = "";
-        }.bind(this)); 
-      
+          this.CKEditor.editor.setData("");
+        }.bind(this));
+
         this.props.videos_shortterm.remove({}, { multi: true }, function (err, numRemoved) {
           this.props.videos.find({}, function(err, entries) {
             this.props.videos_shortterm.insert(entries, function(err, docs) {
-            
+
               let all_tags = Utilities.allTags(entries);
               this.setState({all_tags: all_tags}, function() {
-              
+
                 this.props.updateAllTags(all_tags);
               });
             }.bind(this));
           }.bind(this));
         }.bind(this));
       }
-    }.bind(this)); 
+    }.bind(this));
   }
 
 
   addTag(e) {
     let new_tag = this.tag.value;
-  
+
     new_tag = Utilities.keepAllLettersNumbers(new_tag);
-  
+
     new_tag = new_tag.trim();
-  
+
     if (new_tag !== "") {
-    
+
       let tags = this.state.tags;
-    
+
       let counter = 0;
       let tags_length = tags.length;
       for (var i = 0; i < tags_length; i++) {
-      
+
         let nt_trimlc = new_tag;
         nt_trimlc = nt_trimlc.toLowerCase();
         nt_trimlc = nt_trimlc.trim();
@@ -177,21 +178,21 @@ class AddVideo extends Component {
           counter = counter + 1;
         }
       }
-    
+
       if (counter === 0) {
-      
+
         tags.push(new_tag);
-      
+
         this.setState({ tags: tags, tag: "" });
         this.tag.value = "";
-      
+
         this.tag.blur();
-      
+
         remote.getGlobal('add').tags = this.state.tags;
         remote.getGlobal('add').tag = "";
         remote.getGlobal('enterTracker').tag_insert_tracker = false;
         remote.getGlobal('enterTracker').component_tracker = "add";
-      } else { 
+      } else {
         alert("You have already entered that tag for this video.");
       }
     } else {
@@ -202,9 +203,9 @@ class AddVideo extends Component {
 
 
   displayingTags() {
-  
+
     let ran_num = new Date().getTime();
-  
+
     return this.state.tags.map((video, i) => {
       return (
         <span key={"tag_span" + ran_num + i}>
@@ -216,13 +217,13 @@ class AddVideo extends Component {
 
 
   deleteTag(i) {
-  
+
     let state = Object.assign({}, this.state);
-  
+
     state.tags.splice(i, 1);
-  
+
     this.setState(state);
-  
+
     remote.getGlobal('add').tags = this.state.tags;
     remote.getGlobal('enterTracker').tag_insert_tracker = false;
     remote.getGlobal('enterTracker').component_tracker = "add";
@@ -304,24 +305,24 @@ class AddVideo extends Component {
 
 
   handleTabKey(e) {
-  
+
     if (e.keyCode == 9) {
-    
+
       document.execCommand('insertHTML', false, '&#009');
-    
+
       e.preventDefault();
     }
   }
 
 
   resetAdd() {
-  
+
     this.setState({title: "", code: "", band: "", year: "", genre: "", lyrics: "", type: "", tag: "", tags: []});
     this.video_title.value = "";
     this.video_code.value = "";
     this.video_band.value = "";
     this.tag.value = "";
-  
+
     remote.getGlobal('add').title =  "";
     remote.getGlobal('add').code = "";
     remote.getGlobal('add').band = "";
