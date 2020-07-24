@@ -406,12 +406,13 @@ class Utilities {
 
 
   static htmlStringCleanerArrayConverter(string) {
+    string = string.replace(/&(#39|apos|quot|lsquo|rsquo|ldquo|rdquo|ndash);/g, "");
 
     string = string.replace(/(&nbsp;|<([^>]+)>)/ig, " ");
 
     string = string.replace(/\n/ig, " ");
 
-    string= string.replace(/\s+/g, " ");
+    string = string.replace(/\s+/g, " ");
 
     string = this.keepAllLettersNumbersSpaces(string);
 
