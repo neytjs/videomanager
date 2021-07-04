@@ -147,6 +147,7 @@ class VideoDetails extends Component {
           </div>
           <div>{this.displayingTags()}</div>
           <div>Released: {this.props.displayVideo.video_year}</div>
+          { this.props.displayVideo.video_type === "youtube" ? <a href={("https://www.youtube.com/watch?v=" + this.props.displayVideo.video_code)} target="_blank">https://www.youtube.com/watch?v={this.props.displayVideo.video_code}</a> : "" }
           <div>
             {this.genIframe()}
           </div>
