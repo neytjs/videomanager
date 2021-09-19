@@ -5,7 +5,7 @@ import SelectYear from './select-year-component';
 import SelectGenre from './select-genre-component';
 import SelectType from './select-type-component';
 import Editor from './editor-component';
-const remote = window.require('electron').remote;
+const {getGlobal} = window.require('@electron/remote');
 
 class VideoUpdate extends Component {
   constructor(props) {
@@ -34,8 +34,8 @@ class VideoUpdate extends Component {
   }
 
   componentDidMount() {
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "update";
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "update";
     document.addEventListener("keydown", this.pressEnter, false);
   }
 
@@ -51,16 +51,16 @@ class VideoUpdate extends Component {
   }
 
   componentWillUnmount() {
-    remote.getGlobal('editing').editing_video = false;
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "";
+    getGlobal('editing').editing_video = false;
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "";
     document.removeEventListener("keydown", this.pressEnter, false);
   }
 
   pressEnter(event) {
-    if (event.keyCode === 13 && remote.getGlobal('enterTracker').tag_insert_tracker === false && remote.getGlobal('enterTracker').component_tracker === "update") {
+    if (event.keyCode === 13 && getGlobal('enterTracker').tag_insert_tracker === false && getGlobal('enterTracker').component_tracker === "update") {
       this.handleSubmit();
-    } else if (event.keyCode === 13 && remote.getGlobal('enterTracker').tag_insert_tracker === true && remote.getGlobal('enterTracker').component_tracker === "update") {
+    } else if (event.keyCode === 13 && getGlobal('enterTracker').tag_insert_tracker === true && getGlobal('enterTracker').component_tracker === "update") {
       this.addTag();
     }
   }
@@ -112,28 +112,28 @@ class VideoUpdate extends Component {
 
   handleYearChange(event) {
     this.setState({ video_year: event.target.value, editing: true }, function() {
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "update";
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "update";
     });
   }
 
   handle_video_lyrics_html_Change(event) {
     this.setState({ video_lyrics_html: event.editor.getData(), editing: true }, function() {
-      remote.getGlobal('enterTracker').component_tracker = "update";
+      getGlobal('enterTracker').component_tracker = "update";
     });
   }
 
   handleGenreChange(event) {
     this.setState({ video_genre: event.target.value, editing: true }, function() {
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "update";
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "update";
     });
   }
 
   handleTypeChange(event) {
     this.setState({ video_type: event.target.value, editing: true }, function() {
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "update";
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "update";
     });
   }
 
@@ -142,13 +142,13 @@ class VideoUpdate extends Component {
   }
 
   handle_tracker_onClick() {
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "update";
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "update";
   }
 
   handle_tracker_tags_onClick() {
-    remote.getGlobal('enterTracker').tag_insert_tracker = true;
-    remote.getGlobal('enterTracker').component_tracker = "update";
+    getGlobal('enterTracker').tag_insert_tracker = true;
+    getGlobal('enterTracker').component_tracker = "update";
   }
 
 
@@ -185,8 +185,8 @@ class VideoUpdate extends Component {
 
     this.setState(state);
 
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "update";
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "update";
   }
 
 
@@ -226,13 +226,13 @@ class VideoUpdate extends Component {
         this.tag.value = "";
 
         this.tag.blur();
-        remote.getGlobal('enterTracker').tag_insert_tracker = false;
-        remote.getGlobal('enterTracker').component_tracker = "update";
+        getGlobal('enterTracker').tag_insert_tracker = false;
+        getGlobal('enterTracker').component_tracker = "update";
       } else {
         alert("You have already entered that tag for this video.");
       }
     } else {
-      remote.getGlobal('enterTracker').component_tracker = "update";
+      getGlobal('enterTracker').component_tracker = "update";
       this.handleSubmit();
     }
   }

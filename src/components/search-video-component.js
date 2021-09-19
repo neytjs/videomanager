@@ -4,7 +4,7 @@ import memoize from "memoize-one";
 import Utilities from './js/utilities.js';
 import SelectYear from './select-year-component';
 import SelectGenre from './select-genre-component';
-const remote = window.require('electron').remote;
+const {getGlobal} = window.require('@electron/remote');
 
 class SearchVideos extends Component {
   constructor(props) {
@@ -18,14 +18,14 @@ class SearchVideos extends Component {
     this.video_lyrics = React.createRef();
 
     this.state = {
-      title: remote.getGlobal('search').search_arguments.title.field,
-      band: remote.getGlobal('search').search_arguments.band.field,
-      genre: remote.getGlobal('search').search_arguments.genre.field,
-      lyrics: remote.getGlobal('search').search_arguments.lyrics.field,
-      mintomax: remote.getGlobal('search').search_arguments.mintomax.field,
-      maxtomin: remote.getGlobal('search').search_arguments.maxtomin.field,
-      tag: remote.getGlobal('search').search_arguments.tag.field,
-      stars: remote.getGlobal('search').search_arguments.stars.field,
+      title: getGlobal('search').search_arguments.title.field,
+      band: getGlobal('search').search_arguments.band.field,
+      genre: getGlobal('search').search_arguments.genre.field,
+      lyrics: getGlobal('search').search_arguments.lyrics.field,
+      mintomax: getGlobal('search').search_arguments.mintomax.field,
+      maxtomin: getGlobal('search').search_arguments.maxtomin.field,
+      tag: getGlobal('search').search_arguments.tag.field,
+      stars: getGlobal('search').search_arguments.stars.field,
       focused: props.focused,
       genre_opts: this.props.appData.video_genre,
       all_tags: this.props.all_tags
@@ -41,45 +41,45 @@ class SearchVideos extends Component {
   );
 
   componentDidMount() {
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "search";
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "search";
     document.addEventListener("keydown", this.pressEnter, false);
 
-    if (remote.getGlobal('search').view_all === false) {
+    if (getGlobal('search').view_all === false) {
       this.setState({
-        title: remote.getGlobal('search').search_arguments.title.field,
-        band: remote.getGlobal('search').search_arguments.band.field,
-        genre: remote.getGlobal('search').search_arguments.genre.field,
-        lyrics: remote.getGlobal('search').search_arguments.lyrics.field,
-        mintomax: (remote.getGlobal('search').search_arguments.mintomax.field === this.min_default ? "" : remote.getGlobal('search').search_arguments.mintomax.field),
-        maxtomin: (remote.getGlobal('search').search_arguments.maxtomin.field === this.max_default ? "" : remote.getGlobal('search').search_arguments.maxtomin.field),
-        tag: remote.getGlobal('search').search_arguments.tag.field,
-        stars: remote.getGlobal('search').search_arguments.stars.field
+        title: getGlobal('search').search_arguments.title.field,
+        band: getGlobal('search').search_arguments.band.field,
+        genre: getGlobal('search').search_arguments.genre.field,
+        lyrics: getGlobal('search').search_arguments.lyrics.field,
+        mintomax: (getGlobal('search').search_arguments.mintomax.field === this.min_default ? "" : getGlobal('search').search_arguments.mintomax.field),
+        maxtomin: (getGlobal('search').search_arguments.maxtomin.field === this.max_default ? "" : getGlobal('search').search_arguments.maxtomin.field),
+        tag: getGlobal('search').search_arguments.tag.field,
+        stars: getGlobal('search').search_arguments.stars.field
       });
     }
   }
 
   componentWillUnmount() {
 
-    if (remote.getGlobal('search').band_search === true) {
-      this.video_band.value = remote.getGlobal('search').search_arguments.band.field;
-      remote.getGlobal('search').band_search = false;
-    } else if (remote.getGlobal('search').tag_search === true) {
+    if (getGlobal('search').band_search === true) {
+      this.video_band.value = getGlobal('search').search_arguments.band.field;
+      getGlobal('search').band_search = false;
+    } else if (getGlobal('search').tag_search === true) {
       this.video_band.value = "";
-      remote.getGlobal('search').tag_search = false;
+      getGlobal('search').tag_search = false;
     } else {
 
-      remote.getGlobal('search').search_arguments.title.field = this.video_title.value;
-      remote.getGlobal('search').search_arguments.band.field = this.video_band.value;
-      remote.getGlobal('search').search_arguments.lyrics.field = this.video_lyrics.value;
+      getGlobal('search').search_arguments.title.field = this.video_title.value;
+      getGlobal('search').search_arguments.band.field = this.video_band.value;
+      getGlobal('search').search_arguments.lyrics.field = this.video_lyrics.value;
     }
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "";
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "";
     document.removeEventListener("keydown", this.pressEnter, false);
   }
 
   pressEnter(event) {
-    if (event.keyCode === 13 && remote.getGlobal('enterTracker').tag_insert_tracker === false && remote.getGlobal('enterTracker').component_tracker === "search") {
+    if (event.keyCode === 13 && getGlobal('enterTracker').tag_insert_tracker === false && getGlobal('enterTracker').component_tracker === "search") {
       this.handleSubmit();
     }
   }
@@ -114,23 +114,23 @@ class SearchVideos extends Component {
 
       this.props.searchVideos({title: title, band: band, mintomax: mintomax, maxtomin: maxtomin, genre: this.state.genre, lyrics: lyrics, ifyears: ifyears, tag: this.state.tag, stars: this.state.stars, key_press: true});
 
-      remote.getGlobal('search').search_arguments.title.field = title;
-      remote.getGlobal('search').search_arguments.band.field = band;
-      remote.getGlobal('search').search_arguments.lyrics.field = lyrics;
+      getGlobal('search').search_arguments.title.field = title;
+      getGlobal('search').search_arguments.band.field = band;
+      getGlobal('search').search_arguments.lyrics.field = lyrics;
     }
   }
 
   resetSearch() {
 
     this.setState({ title: "", band: "", mintomax: "", maxtomin: "", genre: null, lyrics: "", tag: null, stars: null }, function() {
-      remote.getGlobal('search').search_arguments.title = { field: "", searched: "" };
-      remote.getGlobal('search').search_arguments.band = { field: "", searched: "" };
-      remote.getGlobal('search').search_arguments.genre = { field: null, searched: null };
-      remote.getGlobal('search').search_arguments.lyrics = { field: "", searched: "" };
-      remote.getGlobal('search').search_arguments.mintomax = { field: "", searched: "" };
-      remote.getGlobal('search').search_arguments.maxtomin = { field: "", searched: "" };
-      remote.getGlobal('search').search_arguments.tag = { field: null, searched: null };
-      remote.getGlobal('search').search_arguments.stars = { field: null, searched: null };
+      getGlobal('search').search_arguments.title = { field: "", searched: "" };
+      getGlobal('search').search_arguments.band = { field: "", searched: "" };
+      getGlobal('search').search_arguments.genre = { field: null, searched: null };
+      getGlobal('search').search_arguments.lyrics = { field: "", searched: "" };
+      getGlobal('search').search_arguments.mintomax = { field: "", searched: "" };
+      getGlobal('search').search_arguments.maxtomin = { field: "", searched: "" };
+      getGlobal('search').search_arguments.tag = { field: null, searched: null };
+      getGlobal('search').search_arguments.stars = { field: null, searched: null };
 
       this.video_title.value = "";
       this.video_band.value = "";
@@ -171,41 +171,41 @@ class SearchVideos extends Component {
 
   handle_title_Change(event) {
     this.setState({ title: event.target.value }, function() {
-      remote.getGlobal('search').search_arguments.title.field = this.state.title;
+      getGlobal('search').search_arguments.title.field = this.state.title;
     });
   }
 
   handle_band_Change(event) {
     this.setState({ band: event.target.value }, function() {
-      remote.getGlobal('search').search_arguments.band.field = this.state.band;
+      getGlobal('search').search_arguments.band.field = this.state.band;
     });
   }
 
   handle_lyrics_Change(event) {
     this.setState({ lyrics: event.target.value }, function() {
-      remote.getGlobal('search').search_arguments.lyrics.field = this.state.lyrics;
+      getGlobal('search').search_arguments.lyrics.field = this.state.lyrics;
     });
   }
 
   handle_mintomax_Change(event) {
     this.setState({ mintomax: event.target.value }, function() {
-      remote.getGlobal('search').search_arguments.mintomax.field = this.state.mintomax;
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "search";
+      getGlobal('search').search_arguments.mintomax.field = this.state.mintomax;
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "search";
     });
   }
 
   handle_maxtomin_Change(event) {
     this.setState({ maxtomin: event.target.value }, function() {
-      remote.getGlobal('search').search_arguments.maxtomin.field = this.state.maxtomin;
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "search";
+      getGlobal('search').search_arguments.maxtomin.field = this.state.maxtomin;
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "search";
     });
   }
 
   handle_tracker_onClick() {
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "search";
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "search";
   }
 
 
@@ -251,9 +251,9 @@ class SearchVideos extends Component {
             styles={Utilities.reactSelectStyles(this.props.cssTemplate)}
             value={genre}
             onChange={value => this.setState({ genre: value }, function() {
-              remote.getGlobal('search').search_arguments.genre.field = value;
-              remote.getGlobal('enterTracker').tag_insert_tracker = false;
-              remote.getGlobal('enterTracker').component_tracker = "search";
+              getGlobal('search').search_arguments.genre.field = value;
+              getGlobal('enterTracker').tag_insert_tracker = false;
+              getGlobal('enterTracker').component_tracker = "search";
             })}
             options={genreOptions}
             closeMenuOnSelect={false}
@@ -265,9 +265,9 @@ class SearchVideos extends Component {
             styles={Utilities.reactSelectStyles(this.props.cssTemplate)}
             value={tag}
             onChange={value => this.setState({ tag: value }, function() {
-              remote.getGlobal('search').search_arguments.tag.field = value;
-              remote.getGlobal('enterTracker').tag_insert_tracker = false;
-              remote.getGlobal('enterTracker').component_tracker = "search";
+              getGlobal('search').search_arguments.tag.field = value;
+              getGlobal('enterTracker').tag_insert_tracker = false;
+              getGlobal('enterTracker').component_tracker = "search";
             })}
             options={Utilities.createTagOptions(updatedTags)}
             closeMenuOnSelect={false}
@@ -279,9 +279,9 @@ class SearchVideos extends Component {
             styles={Utilities.reactSelectStyles(this.props.cssTemplate)}
             value={stars}
             onChange={value => this.setState({ stars: value }, function() {
-              remote.getGlobal('search').search_arguments.stars.field = value;
-              remote.getGlobal('enterTracker').tag_insert_tracker = false;
-              remote.getGlobal('enterTracker').component_tracker = "search";
+              getGlobal('search').search_arguments.stars.field = value;
+              getGlobal('enterTracker').tag_insert_tracker = false;
+              getGlobal('enterTracker').component_tracker = "search";
             })}
             options={starsOptions}
             closeMenuOnSelect={false}

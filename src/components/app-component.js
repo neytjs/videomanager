@@ -12,8 +12,8 @@ import AppData from './js/app_data.js';
 const defaultAppData = AppData.defaultAppData();
 const ipcRenderer = window.require('electron').ipcRenderer;
 
-const remote = window.require('electron').remote;
-let app_path = remote.app.getAppPath('');
+const {app, getGlobal} = window.require('@electron/remote');
+let app_path = app.getAppPath('');
 
 var DataStore = window.require('nedb');
 var app_data_longterm = new DataStore({ filename: app_path+'/data/app_data.db', autoload: true });
@@ -60,7 +60,7 @@ class App extends Component {
 
     ipcRenderer.on('new_db', function(event, response) {
 
-      remote.getGlobal('listTracker').list_id = Utilities.generateString();
+      getGlobal('listTracker').list_id = Utilities.generateString();
 
       this.setState({loaded: false});
 
@@ -80,7 +80,7 @@ class App extends Component {
 
           app_data_longterm.update({}, {$set: {filepath: this.filepath}}, function() {
             this.setState({ view_or_add: "view" });
-            remote.getGlobal('search').search_hidden = "adding";
+            getGlobal('search').search_hidden = "adding";
 
             this.getVideos(true);
           }.bind(this));
@@ -153,38 +153,38 @@ class App extends Component {
       }.bind(this));
     }.bind(this));
     ipcRenderer.on('view', function(event, response) {
-      remote.getGlobal('search').search_hidden = "none";
-      remote.getGlobal('search').prev_view = "none";
+      getGlobal('search').search_hidden = "none";
+      getGlobal('search').prev_view = "none";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('search', function(event, response) {
-      remote.getGlobal('search').search_hidden = "searching";
-      remote.getGlobal('search').prev_view = "searching";
+      getGlobal('search').search_hidden = "searching";
+      getGlobal('search').prev_view = "searching";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('add', function(event, response) {
-      remote.getGlobal('search').search_hidden = "adding";
-      remote.getGlobal('search').prev_view = "adding";
+      getGlobal('search').search_hidden = "adding";
+      getGlobal('search').prev_view = "adding";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('history', function(event, response) {
-      remote.getGlobal('search').search_hidden = "none";
+      getGlobal('search').search_hidden = "none";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('analysis', function(event, response) {
-      remote.getGlobal('search').search_hidden = "none";
+      getGlobal('search').search_hidden = "none";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('metrics', function(event, response) {
-      remote.getGlobal('search').search_hidden = "none";
+      getGlobal('search').search_hidden = "none";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('settings', function(event, response) {
-      remote.getGlobal('search').search_hidden = "none";
+      getGlobal('search').search_hidden = "none";
       this.editTestThenSetState(response);
     }.bind(this));
     ipcRenderer.on('help', function(event, response) {
-      remote.getGlobal('search').search_hidden = "none";
+      getGlobal('search').search_hidden = "none";
       this.editTestThenSetState(response);
     }.bind(this));
   }
@@ -194,7 +194,7 @@ class App extends Component {
   }
 
   editTestThenSetState(destination) {
-    if (remote.getGlobal('editing').editing_video === true) {
+    if (getGlobal('editing').editing_video === true) {
 
       let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
 
@@ -211,9 +211,9 @@ class App extends Component {
   handleInterfaceClick(destination) {
     if (destination === "view" || destination === "searching" || destination === "adding") {
       window.scrollTo(0, 0);
-      remote.getGlobal('interfaceClick').clicked = true;
+      getGlobal('interfaceClick').clicked = true;
     } else {
-      remote.getGlobal('interfaceClick').clicked = false;
+      getGlobal('interfaceClick').clicked = false;
     }
   }
 
@@ -289,23 +289,23 @@ class App extends Component {
 
         if ((status === "searching" || status === "adding" || status === "history" || status === "analysis" || status === "metrics") && final_key !== "enter") {
           let setView = () => {
-            if (remote.getGlobal('search').search_hidden === status) {
-              remote.getGlobal('search').search_hidden = "none";
-              remote.getGlobal('search').prev_view = "none";
+            if (getGlobal('search').search_hidden === status) {
+              getGlobal('search').search_hidden = "none";
+              getGlobal('search').prev_view = "none";
               this.setState({ view_or_add: "view" });
             } else {
               if (status === "analysis" || status === "metrics" || status === "history") {
-                remote.getGlobal('search').search_hidden = "none";
+                getGlobal('search').search_hidden = "none";
                 this.setState({ view_or_add: status });
               } else {
-                remote.getGlobal('search').search_hidden = status;
-                remote.getGlobal('search').prev_view = remote.getGlobal('search').search_hidden;
+                getGlobal('search').search_hidden = status;
+                getGlobal('search').prev_view = getGlobal('search').search_hidden;
                 this.setState({ view_or_add: "view" });
               }
             }
           }
 
-          if (remote.getGlobal('editing').editing_video === true) {
+          if (getGlobal('editing').editing_video === true) {
 
             let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
 
@@ -378,7 +378,7 @@ class App extends Component {
 
           let list_id = videos.length > 0 ? videos[0].list_id : Utilities.generateString();
 
-          remote.getGlobal('listTracker').list_id = list_id;
+          getGlobal('listTracker').list_id = list_id;
 
           if (open_file) {
             app_data_shortterm.findOne({}, function(err, app_data_s) {
@@ -492,7 +492,7 @@ class App extends Component {
         let matches = results.matches;
         let new_list_id = results.new_list_id;
 
-        remote.getGlobal('listTracker').list_id = new_list_id;
+        getGlobal('listTracker').list_id = new_list_id;
 
         app_data_shortterm.update({}, {$set:{list_ids: matches}});
         app_data_longterm.update({}, {$set:{list_ids: matches}});
@@ -535,10 +535,10 @@ class App extends Component {
         video_genre: video.video_genre,
         video_id: id,
         view_date: Date.now(),
-        list_id: remote.getGlobal('listTracker').list_id
+        list_id: getGlobal('listTracker').list_id
       };
 
-      remote.getGlobal('history_viewer').video = hist;
+      getGlobal('history_viewer').video = hist;
 
       history.insert(hist, function(err, doc) {
       });

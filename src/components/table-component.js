@@ -1,8 +1,6 @@
 import React, {Component} from 'react';
-const remote = window.require('electron').remote;
-
-
 import Stars from './stars-component.js';
+const {getGlobal} = window.require('@electron/remote');
 
 class Table extends Component {
   constructor(props) {
@@ -10,7 +8,7 @@ class Table extends Component {
   }
 
   viewVideoFromHistory() {
-    remote.getGlobal('history_viewer').history_clicked = true;
+    getGlobal('history_viewer').history_clicked = true;
     this.props.setToView();
   }
 

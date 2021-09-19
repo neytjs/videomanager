@@ -3,7 +3,7 @@ import Select from 'react-select';
 import Utilities from './js/utilities.js';
 import Chart from 'chart.js';
 import SelectYear from './select-year-component';
-const remote = window.require('electron').remote;
+const {getGlobal} = window.require('@electron/remote');
 
 class Analysis extends Component {
   constructor(props) {
@@ -16,13 +16,13 @@ class Analysis extends Component {
       backgroundColors: ['#ff6666', '#00cc00', '#4d4dff', '#ffff00', '#a64dff', '#ffa366', '#ff80b3', '#00ffbf', '#88cc00', '#e6004c', '#c2c2a3', '#d2a679', '#ffdb4d', '#ff80ff', '#cccccc', '#4dff88', '#ff531a', '#ff0000'],
       borderColors: ['#ff0000', '#006600', '#0000cc', '#e6e600', '#6600cc', '#ff6600', '#ff0066', '#00b386', '#669900', '#990033', '#999966', '#996633', '#e6b800', '#ff00ff', '#999999', '#00cc44', '#cc3300', '#b30000'],
       videos: [],
-      year_start: remote.getGlobal('analysis').year_start,
-      year_end: remote.getGlobal('analysis').year_end,
-      genre: remote.getGlobal('analysis').genre,
-      tag: remote.getGlobal('analysis').tag,
-      analysis_type: remote.getGlobal('analysis').analysis_type,
-      starsChecked: remote.getGlobal('analysis').starsChecked,
-      videosChecked: remote.getGlobal('analysis').videosChecked
+      year_start: getGlobal('analysis').year_start,
+      year_end: getGlobal('analysis').year_end,
+      genre: getGlobal('analysis').genre,
+      tag: getGlobal('analysis').tag,
+      analysis_type: getGlobal('analysis').analysis_type,
+      starsChecked: getGlobal('analysis').starsChecked,
+      videosChecked: getGlobal('analysis').videosChecked
     }
   }
 
@@ -34,7 +34,7 @@ class Analysis extends Component {
     this.props.videos_shortterm.find({}, function(err, videos) {
       this.setState({videos: videos}, function() {
 
-        if (remote.getGlobal('analysis').analyzed === true) {
+        if (getGlobal('analysis').analyzed === true) {
           this.conductAnalysis();
         }
       });
@@ -53,7 +53,7 @@ class Analysis extends Component {
 
   conductAnalysis() {
 
-    remote.getGlobal('analysis').analyzed = true;
+    getGlobal('analysis').analyzed = true;
     let state = Object.assign({}, this.state);
     let analysis_type = state.analysis_type;
     let start = parseInt(state.year_start);
@@ -348,13 +348,13 @@ class Analysis extends Component {
 
   handle_year_start_Change(event) {
     this.setState({ year_start: event.target.value }, function() {
-      remote.getGlobal('analysis').year_start = this.state.year_start;
+      getGlobal('analysis').year_start = this.state.year_start;
     });
   }
 
   handle_year_end_Change(event) {
     this.setState({ year_end: event.target.value }, function() {
-      remote.getGlobal('analysis').year_end = this.state.year_end;
+      getGlobal('analysis').year_end = this.state.year_end;
     });
   }
 
@@ -364,9 +364,9 @@ class Analysis extends Component {
       starsChecked: (event.target.value === "stars" ? true : false),
       videosChecked: (event.target.value === "videos" ? true : false)
     }, function() {
-      remote.getGlobal('analysis').analysis_type = this.state.analysis_type;
-      remote.getGlobal('analysis').starsChecked = this.state.starsChecked;
-      remote.getGlobal('analysis').videosChecked = this.state.videosChecked;
+      getGlobal('analysis').analysis_type = this.state.analysis_type;
+      getGlobal('analysis').starsChecked = this.state.starsChecked;
+      getGlobal('analysis').videosChecked = this.state.videosChecked;
     });
   }
 
@@ -374,14 +374,14 @@ class Analysis extends Component {
 
     this.setState({year_start: 0, year_end: 0, genre: null, tag: null, analysis_type: "", starsChecked: false, videosChecked: false});
 
-    remote.getGlobal('analysis').year_start = 0;
-    remote.getGlobal('analysis').year_end = 0;
-    remote.getGlobal('analysis').genre = null;
-    remote.getGlobal('analysis').tag = null;
-    remote.getGlobal('analysis').analyzed = false;
-    remote.getGlobal('analysis').analysis_type = "";
-    remote.getGlobal('analysis').starsChecked = false;
-    remote.getGlobal('analysis').videosChecked = false;
+    getGlobal('analysis').year_start = 0;
+    getGlobal('analysis').year_end = 0;
+    getGlobal('analysis').genre = null;
+    getGlobal('analysis').tag = null;
+    getGlobal('analysis').analyzed = false;
+    getGlobal('analysis').analysis_type = "";
+    getGlobal('analysis').starsChecked = false;
+    getGlobal('analysis').videosChecked = false;
 
     if (window.myLineChart) {
       window.myLineChart.destroy();
@@ -409,7 +409,7 @@ class Analysis extends Component {
             styles={Utilities.reactSelectStyles(this.props.cssTemplate)}
             value={genre}
             onChange={value => this.setState({ genre: value }, function() {
-              remote.getGlobal('analysis').genre = value;
+              getGlobal('analysis').genre = value;
             })}
             options={Utilities.createTagOptions(this.props.appData.video_genre)}
             closeMenuOnSelect={false}
@@ -421,7 +421,7 @@ class Analysis extends Component {
             styles={Utilities.reactSelectStyles(this.props.cssTemplate)}
             value={tag}
             onChange={value => this.setState({ tag: value }, function() {
-              remote.getGlobal('analysis').tag = value;
+              getGlobal('analysis').tag = value;
             })}
             options={Utilities.createTagOptions(this.props.all_tags)}
             closeMenuOnSelect={false}

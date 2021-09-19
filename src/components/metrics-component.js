@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import Utilities from './js/utilities.js';
 import Chart from 'chart.js';
-const remote = window.require('electron').remote;
+const {getGlobal} = window.require('@electron/remote');
 
 class Metrics extends Component {
   constructor() {
@@ -72,7 +72,7 @@ class Metrics extends Component {
       this.topTags();
       this.displayGenrePieChart();
 
-      this.props.history.find({list_id: remote.getGlobal('listTracker').list_id}, function(err, docs) {
+      this.props.history.find({list_id: getGlobal('listTracker').list_id}, function(err, docs) {
         this.setState({history: docs});
         this.calculateGenreLineChart();
 

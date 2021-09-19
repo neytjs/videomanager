@@ -4,7 +4,7 @@ import AddVideo from './add-video-component';
 import VideoDetails from './video-details.component';
 import Table from './table-component';
 import Utilities from './js/utilities.js';
-const remote = window.require('electron').remote;
+const {getGlobal} = window.require('@electron/remote');
 
 class VideoList extends Component {
   constructor(props) {
@@ -12,7 +12,7 @@ class VideoList extends Component {
 
     this.state = {
       videos: [],
-      selected_video: remote.getGlobal('history_viewer').video,
+      selected_video: getGlobal('history_viewer').video,
       video_id: 0,
       video_el: 0,
       counter: 0,
@@ -21,13 +21,13 @@ class VideoList extends Component {
       search: "",
       searchRef: React.createRef(),
       videoRef: React.createRef(),
-      search_hidden: remote.getGlobal('search').search_hidden,
-      ascdesc: remote.getGlobal('search').ascdesc,
-      sorted: remote.getGlobal('search').sorted,
+      search_hidden: getGlobal('search').search_hidden,
+      ascdesc: getGlobal('search').ascdesc,
+      sorted: getGlobal('search').sorted,
       loading: true,
       displaying: false,
-      history: remote.getGlobal('search').history,
-      page: remote.getGlobal('search').page,
+      history: getGlobal('search').history,
+      page: getGlobal('search').page,
       per_page: this.props.appData.per_page_viewall,
       start: 0
     };
@@ -42,30 +42,30 @@ class VideoList extends Component {
 
   loadVideoFromHistory() {
 
-    if (remote.getGlobal('history_viewer').video.video_id) {
+    if (getGlobal('history_viewer').video.video_id) {
       let just_added = false;
       let history_clicked = false;
-      if (remote.getGlobal('history_viewer').history_clicked === true || remote.getGlobal('history_viewer').just_added === true) {
-        just_added = remote.getGlobal('history_viewer').just_added;
-        history_clicked = remote.getGlobal('history_viewer').history_clicked;
+      if (getGlobal('history_viewer').history_clicked === true || getGlobal('history_viewer').just_added === true) {
+        just_added = getGlobal('history_viewer').just_added;
+        history_clicked = getGlobal('history_viewer').history_clicked;
 
         this.setState({ history: true });
 
-        remote.getGlobal('history_viewer').history_clicked = false;
-        remote.getGlobal('history_viewer').just_added = false;
+        getGlobal('history_viewer').history_clicked = false;
+        getGlobal('history_viewer').just_added = false;
 
-        if (remote.getGlobal('search').prev_view !== "none") {
-          remote.getGlobal('search').search_hidden = remote.getGlobal('search').prev_view;
-          this.setState({search_hidden: remote.getGlobal('search').prev_view});
+        if (getGlobal('search').prev_view !== "none") {
+          getGlobal('search').search_hidden = getGlobal('search').prev_view;
+          this.setState({search_hidden: getGlobal('search').prev_view});
         }
       }
-      let id = remote.getGlobal('history_viewer').video.video_id;
+      let id = getGlobal('history_viewer').video.video_id;
 
       this.props.videos_shortterm.findOne({_id: id}, function(err, video) {
         if (just_added === false) {
 
           this.displayVideo(video, id, 0);
-        } else if (history_clicked === true && remote.getGlobal('search').view_all === false) {
+        } else if (history_clicked === true && getGlobal('search').view_all === false) {
 
           this.displayVideo(video, id, 0);
         } else {
@@ -84,7 +84,7 @@ class VideoList extends Component {
 
         if (display_all === true) {
           this.setState({page: 1}, function() {
-            remote.getGlobal('search').page = this.state.page;
+            getGlobal('search').page = this.state.page;
           });
         }
 
@@ -102,7 +102,7 @@ class VideoList extends Component {
             paginate_data = this.paginateVideos(videos, page);
             this.setState({page: page}, function() {
 
-              remote.getGlobal('search').page = page;
+              getGlobal('search').page = page;
             });
           } else {
             paginate_data = this.paginateVideos(videos);
@@ -112,68 +112,68 @@ class VideoList extends Component {
 
           this.setState({counter: counter, total_videos: total_videos, videos: videos, search: "", start: paginate_data.start});
 
-          if (remote.getGlobal('add').just_inserted_code !== "") {
+          if (getGlobal('add').just_inserted_code !== "") {
 
-            this.props.videos_shortterm.findOne({video_code: remote.getGlobal('add').just_inserted_code}, function(err, vid) {
+            this.props.videos_shortterm.findOne({video_code: getGlobal('add').just_inserted_code}, function(err, vid) {
 
               this.props.addToHistory(vid._id);
 
-              remote.getGlobal('history_viewer').video.video_id = vid._id;
+              getGlobal('history_viewer').video.video_id = vid._id;
 
-              remote.getGlobal('history_viewer').just_added = true;
+              getGlobal('history_viewer').just_added = true;
 
               this.loadVideoFromHistory();
 
-              remote.getGlobal('add').just_inserted_code = "";
+              getGlobal('add').just_inserted_code = "";
             }.bind(this));
           } else {
 
             this.loadVideoFromHistory();
           }
 
-          if (videos.length === 0 && remote.getGlobal('search').search_hidden === "none") {
-            remote.getGlobal('search').search_hidden = "adding";
+          if (videos.length === 0 && getGlobal('search').search_hidden === "none") {
+            getGlobal('search').search_hidden = "adding";
             this.setState({search_hidden: "adding"});
           }
 
           if (display_all === true) {
 
-            remote.getGlobal('search').view_all = true;
-            remote.getGlobal('search').search_arguments.title.searched = "";
-            remote.getGlobal('search').search_arguments.band.searched = "";
-            remote.getGlobal('search').search_arguments.genre.searched = null;
-            remote.getGlobal('search').search_arguments.lyrics.searched = "";
-            remote.getGlobal('search').search_arguments.mintomax.searched = "";
-            remote.getGlobal('search').search_arguments.maxtomin.searched = "";
-            remote.getGlobal('search').search_arguments.tag.searched = null;
-            remote.getGlobal('search').search_arguments.stars.searched = null;
+            getGlobal('search').view_all = true;
+            getGlobal('search').search_arguments.title.searched = "";
+            getGlobal('search').search_arguments.band.searched = "";
+            getGlobal('search').search_arguments.genre.searched = null;
+            getGlobal('search').search_arguments.lyrics.searched = "";
+            getGlobal('search').search_arguments.mintomax.searched = "";
+            getGlobal('search').search_arguments.maxtomin.searched = "";
+            getGlobal('search').search_arguments.tag.searched = null;
+            getGlobal('search').search_arguments.stars.searched = null;
 
             this.setState({loading: false});
-          } else if (remote.getGlobal('search').view_all === false) {
+          } else if (getGlobal('search').view_all === false) {
 
             this.searchVideos({
-              title: remote.getGlobal('search').search_arguments.title.searched,
-              band: remote.getGlobal('search').search_arguments.band.searched,
-              mintomax: remote.getGlobal('search').search_arguments.mintomax.searched,
-              maxtomin: remote.getGlobal('search').search_arguments.maxtomin.searched,
-              genre: remote.getGlobal('search').search_arguments.genre.searched,
-              lyrics: remote.getGlobal('search').search_arguments.lyrics.searched,
-              ifyears: remote.getGlobal('search').search_arguments.ifyears,
-              tag: remote.getGlobal('search').search_arguments.tag.searched,
-              stars: remote.getGlobal('search').search_arguments.stars.searched
+              title: getGlobal('search').search_arguments.title.searched,
+              band: getGlobal('search').search_arguments.band.searched,
+              mintomax: getGlobal('search').search_arguments.mintomax.searched,
+              maxtomin: getGlobal('search').search_arguments.maxtomin.searched,
+              genre: getGlobal('search').search_arguments.genre.searched,
+              lyrics: getGlobal('search').search_arguments.lyrics.searched,
+              ifyears: getGlobal('search').search_arguments.ifyears,
+              tag: getGlobal('search').search_arguments.tag.searched,
+              stars: getGlobal('search').search_arguments.stars.searched
             });
-            this.setState({ search_hidden: remote.getGlobal('search').search_hidden });
+            this.setState({ search_hidden: getGlobal('search').search_hidden });
           } else {
 
             this.setState({loading: false});
-            remote.getGlobal('interfaceClick').clicked = false;
+            getGlobal('interfaceClick').clicked = false;
             resolve(false);
           }
         }.bind(this));
       });
     }
 
-    if (remote.getGlobal('editing').editing_video === true) {
+    if (getGlobal('editing').editing_video === true) {
 
       let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
 
@@ -195,12 +195,12 @@ class VideoList extends Component {
           this.scrollControl("videoRef");
         }
 
-        if (remote.getGlobal('editing').loc !== 0 && remote.getGlobal('search').view_all !== false) {
+        if (getGlobal('editing').loc !== 0 && getGlobal('search').view_all !== false) {
           this.scrollControl("edit_loc");
         }
       });
     }
-    if (remote.getGlobal('editing').editing_video === true) {
+    if (getGlobal('editing').editing_video === true) {
 
       let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
 
@@ -230,17 +230,17 @@ class VideoList extends Component {
 
         this.setState({loading: true});
 
-        remote.getGlobal('search').view_all = false;
-        remote.getGlobal('search').prev_view = remote.getGlobal('add').just_inserted_code !== "" || remote.getGlobal('search').prev_view === "adding" ? "adding" : "searching";
-        remote.getGlobal('search').search_arguments.title.searched = video_title;
-        remote.getGlobal('search').search_arguments.band.searched = band;
-        remote.getGlobal('search').search_arguments.genre.searched = genre;
-        remote.getGlobal('search').search_arguments.lyrics.searched = lyrics;
-        remote.getGlobal('search').search_arguments.mintomax.searched = mintomax;
-        remote.getGlobal('search').search_arguments.maxtomin.searched = maxtomin;
-        remote.getGlobal('search').search_arguments.tag.searched = tag;
-        remote.getGlobal('search').search_arguments.stars.searched = stars;
-        remote.getGlobal('search').search_arguments.ifyears = ifyears;
+        getGlobal('search').view_all = false;
+        getGlobal('search').prev_view = getGlobal('add').just_inserted_code !== "" || getGlobal('search').prev_view === "adding" ? "adding" : "searching";
+        getGlobal('search').search_arguments.title.searched = video_title;
+        getGlobal('search').search_arguments.band.searched = band;
+        getGlobal('search').search_arguments.genre.searched = genre;
+        getGlobal('search').search_arguments.lyrics.searched = lyrics;
+        getGlobal('search').search_arguments.mintomax.searched = mintomax;
+        getGlobal('search').search_arguments.maxtomin.searched = maxtomin;
+        getGlobal('search').search_arguments.tag.searched = tag;
+        getGlobal('search').search_arguments.stars.searched = stars;
+        getGlobal('search').search_arguments.ifyears = ifyears;
 
         let search_title = Utilities.customSplit(video_title);
         let search_band = Utilities.customSplit(band);
@@ -278,7 +278,7 @@ class VideoList extends Component {
         if (key_press) {
           this.setState({page: 1}, function() {
 
-            remote.getGlobal('search').page = 1;
+            getGlobal('search').page = 1;
           });
         }
 
@@ -295,12 +295,12 @@ class VideoList extends Component {
             docs = Utilities.arrayComparerFindAll(search_title.notquotes, docs, "video_title");
             docs = Utilities.arrayComparer(search_title.quotes, docs, "video_title");
 
-            if (remote.getGlobal('search').band_search_clicked === false) {
+            if (getGlobal('search').band_search_clicked === false) {
               docs = Utilities.arrayComparerFindAll(search_band.notquotes, docs, "video_band");
               docs = Utilities.arrayComparer(search_band.quotes, docs, "video_band");
             } else {
               docs = Utilities.findExactStringMatches(band, docs, "video_band");
-              remote.getGlobal('search').band_search_clicked = false;
+              getGlobal('search').band_search_clicked = false;
             }
             docs = Utilities.arrayComparerFindAll(search_lyrics.notquotes, docs, "video_lyrics");
             docs = Utilities.arrayComparer(search_lyrics.quotes, docs, "video_lyrics");
@@ -332,7 +332,7 @@ class VideoList extends Component {
       }
     }
 
-    if (remote.getGlobal('editing').editing_video === true) {
+    if (getGlobal('editing').editing_video === true) {
 
       let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
 
@@ -487,25 +487,25 @@ class VideoList extends Component {
 
     innerRecursiveFunction();
 
-    this.setState({search: search_string, search_hidden: remote.getGlobal('search').search_hidden, loading: false}, function() {
+    this.setState({search: search_string, search_hidden: getGlobal('search').search_hidden, loading: false}, function() {
 
-      if (this.state.history === true || remote.getGlobal('search').updated === true) {
+      if (this.state.history === true || getGlobal('search').updated === true) {
 
-        if (remote.getGlobal('editing').loc !== 0) {
+        if (getGlobal('editing').loc !== 0) {
           this.scrollControl("edit_loc");
         } else {
           this.scrollControl("videoRef");
         }
         this.setState({ history: false }, function() {
-          remote.getGlobal('search').history = false;
-          remote.getGlobal('search').updated = false;
+          getGlobal('search').history = false;
+          getGlobal('search').updated = false;
         });
       } else {
 
-        if (remote.getGlobal('interfaceClick').clicked === true && key_press === false) {
+        if (getGlobal('interfaceClick').clicked === true && key_press === false) {
           this.scrollControl("top");
 
-          remote.getGlobal('interfaceClick').clicked = false;
+          getGlobal('interfaceClick').clicked = false;
         } else {
           this.scrollControl("searchRef");
         }
@@ -535,10 +535,10 @@ class VideoList extends Component {
         }.bind(this));
       }.bind(this));
 
-      this.props.history.remove({ video_id: video_id, list_id: remote.getGlobal('listTracker').list_id }, { multi: true }, function (err, numRemoved) {
+      this.props.history.remove({ video_id: video_id, list_id: getGlobal('listTracker').list_id }, { multi: true }, function (err, numRemoved) {
 
       });
-      this.props.history_shortterm.remove({ video_id: video_id, list_id: remote.getGlobal('listTracker').list_id }, { multi: true }, function (err, numRemoved) {
+      this.props.history_shortterm.remove({ video_id: video_id, list_id: getGlobal('listTracker').list_id }, { multi: true }, function (err, numRemoved) {
 
       });
 
@@ -656,9 +656,9 @@ class VideoList extends Component {
     state.selected_video.video_tags = new_tags;
     state.selected_video.video_stars = new_stars;
 
-    remote.getGlobal('editing').loc = window.pageYOffset;
+    getGlobal('editing').loc = window.pageYOffset;
 
-    remote.getGlobal('search').updated = true;
+    getGlobal('search').updated = true;
 
     this.setState(state);
   }
@@ -672,12 +672,12 @@ class VideoList extends Component {
 
     this.setState(state);
 
-    remote.getGlobal('history_viewer').video = {};
+    getGlobal('history_viewer').video = {};
   }
 
   showHideSearch(display) {
-    remote.getGlobal('search').prev_view = (display === "none") ? display : remote.getGlobal('search').prev_view;
-    remote.getGlobal('search').search_hidden = display;
+    getGlobal('search').prev_view = (display === "none") ? display : getGlobal('search').prev_view;
+    getGlobal('search').search_hidden = display;
     this.setState({ search_hidden: display });
     this.scrollControl("top");
   }
@@ -705,8 +705,8 @@ class VideoList extends Component {
           let offset = this.state.videoRef.current.getBoundingClientRect();
           window.scrollTo(0, offset.top);
         } else if (position === "edit_loc") {
-          window.scrollTo(0, remote.getGlobal('editing').loc);
-          remote.getGlobal('editing').loc = 0;
+          window.scrollTo(0, getGlobal('editing').loc);
+          getGlobal('editing').loc = 0;
         }
       }.bind(this), 300);
     }
@@ -904,8 +904,8 @@ class VideoList extends Component {
       return videos;
     }
 
-    remote.getGlobal('search').ascdesc = ascdesc;
-    remote.getGlobal('search').sorted = sort_symbol;
+    getGlobal('search').ascdesc = ascdesc;
+    getGlobal('search').sorted = sort_symbol;
   }
 
   handlePageChange(page) {

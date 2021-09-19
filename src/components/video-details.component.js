@@ -3,7 +3,7 @@ import ReactHtmlParser from 'react-html-parser';
 import memoize from "memoize-one";
 import VideoUpdate from './video-update-component';
 import RateStars from './rate-stars-component.js';
-const remote = window.require('electron').remote;
+const {getGlobal} = window.require('@electron/remote');
 
 class VideoDetails extends Component {
   constructor(props) {
@@ -13,9 +13,9 @@ class VideoDetails extends Component {
     this.max_default = new Date().getFullYear();
 
     this.state = {
-      viewing_lyrics: remote.getGlobal('history_viewer').viewing_lyrics,
-      videoId: remote.getGlobal('history_viewer').video.video_id,
-      editing_video: remote.getGlobal('editing').editing_video,
+      viewing_lyrics: getGlobal('history_viewer').viewing_lyrics,
+      videoId: getGlobal('history_viewer').video.video_id,
+      editing_video: getGlobal('editing').editing_video,
       stars: ""
     }
   }
@@ -30,7 +30,7 @@ class VideoDetails extends Component {
   }
 
   compare = memoize(
-    (videoIdProp, videoIdState) => videoIdProp !== videoIdState ? this.setState({ viewing_lyrics: false }, function() { this.loadStars(); remote.getGlobal('history_viewer').viewing_lyrics = false; }) : videoIdState
+    (videoIdProp, videoIdState) => videoIdProp !== videoIdState ? this.setState({ viewing_lyrics: false }, function() { this.loadStars(); getGlobal('history_viewer').viewing_lyrics = false; }) : videoIdState
   );
 
   loadStars() {
@@ -42,10 +42,10 @@ class VideoDetails extends Component {
 
     if (this.state.viewing_lyrics === false) {
       this.setState({ viewing_lyrics: true });
-      remote.getGlobal('history_viewer').viewing_lyrics = true;
+      getGlobal('history_viewer').viewing_lyrics = true;
     } else {
       this.setState({ viewing_lyrics: false });
-      remote.getGlobal('history_viewer').viewing_lyrics = false;
+      getGlobal('history_viewer').viewing_lyrics = false;
     }
   }
 
@@ -67,34 +67,34 @@ class VideoDetails extends Component {
   runTagSearch(tag) {
     this.props.searchVideos({title: "", band: "", mintomax: this.min_default, maxtomin: this.max_default, genre: null, lyrics: "", ifyears: false, tag: [{value: tag, label: tag}], stars: null, key_press: true});
 
-    remote.getGlobal('search').search_hidden = "searching";
-    remote.getGlobal('search').tag_search = true;
-    remote.getGlobal('search').search_arguments.title.field = "";
-    remote.getGlobal('search').search_arguments.band.field = "";
-    remote.getGlobal('search').search_arguments.genre.field = null;
-    remote.getGlobal('search').search_arguments.lyrics.field = "";
-    remote.getGlobal('search').search_arguments.mintomax.field = "";
-    remote.getGlobal('search').search_arguments.maxtomin.field = "";
-    remote.getGlobal('search').search_arguments.tag.field = [{value: tag, label: tag}];
-    remote.getGlobal('search').search_arguments.stars.field = null;
-    remote.getGlobal('search').search_arguments.field = "";
+    getGlobal('search').search_hidden = "searching";
+    getGlobal('search').tag_search = true;
+    getGlobal('search').search_arguments.title.field = "";
+    getGlobal('search').search_arguments.band.field = "";
+    getGlobal('search').search_arguments.genre.field = null;
+    getGlobal('search').search_arguments.lyrics.field = "";
+    getGlobal('search').search_arguments.mintomax.field = "";
+    getGlobal('search').search_arguments.maxtomin.field = "";
+    getGlobal('search').search_arguments.tag.field = [{value: tag, label: tag}];
+    getGlobal('search').search_arguments.stars.field = null;
+    getGlobal('search').search_arguments.field = "";
   }
 
   runBandSearch(band) {
     this.props.searchVideos({title: "", band: band, mintomax: this.min_default, maxtomin: this.max_default, genre: null, lyrics: "", ifyears: false, tag: null, stars: null, key_press: true});
 
-    remote.getGlobal('search').search_hidden = "searching";
-    remote.getGlobal('search').band_search = true;
-    remote.getGlobal('search').band_search_clicked = true;
-    remote.getGlobal('search').search_arguments.title.field = "";
-    remote.getGlobal('search').search_arguments.band.field = band;
-    remote.getGlobal('search').search_arguments.genre.field = null;
-    remote.getGlobal('search').search_arguments.lyrics.field = "";
-    remote.getGlobal('search').search_arguments.mintomax.field = "";
-    remote.getGlobal('search').search_arguments.maxtomin.field = "";
-    remote.getGlobal('search').search_arguments.tag.field = null;
-    remote.getGlobal('search').search_arguments.stars.field = null;
-    remote.getGlobal('search').search_arguments.field = "";
+    getGlobal('search').search_hidden = "searching";
+    getGlobal('search').band_search = true;
+    getGlobal('search').band_search_clicked = true;
+    getGlobal('search').search_arguments.title.field = "";
+    getGlobal('search').search_arguments.band.field = band;
+    getGlobal('search').search_arguments.genre.field = null;
+    getGlobal('search').search_arguments.lyrics.field = "";
+    getGlobal('search').search_arguments.mintomax.field = "";
+    getGlobal('search').search_arguments.maxtomin.field = "";
+    getGlobal('search').search_arguments.tag.field = null;
+    getGlobal('search').search_arguments.stars.field = null;
+    getGlobal('search').search_arguments.field = "";
   }
 
   cancelEdit() {
@@ -104,10 +104,10 @@ class VideoDetails extends Component {
   editVideo() {
 
     if (this.state.editing_video === false) {
-      remote.getGlobal('editing').editing_video = true;
+      getGlobal('editing').editing_video = true;
       this.setState({ editing_video: true });
     } else {
-      remote.getGlobal('editing').editing_video = false;
+      getGlobal('editing').editing_video = false;
       this.setState({ editing_video: false });
     }
   }

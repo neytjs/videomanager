@@ -4,7 +4,7 @@ import SelectYear from './select-year-component';
 import SelectGenre from './select-genre-component';
 import SelectType from './select-type-component';
 import Editor from './editor-component';
-const remote = window.require('electron').remote;
+const {getGlobal} = window.require('@electron/remote');
 
 class AddVideo extends Component {
   constructor() {
@@ -17,41 +17,41 @@ class AddVideo extends Component {
     this.CKEditor = React.createRef();
 
     this.state = {
-      message: remote.getGlobal('add').message,
-      title: remote.getGlobal('add').title,
-      code: remote.getGlobal('add').code,
-      band: remote.getGlobal('add').band,
-      year: remote.getGlobal('add').year,
-      genre: remote.getGlobal('add').genre,
-      lyrics: remote.getGlobal('add').lyrics,
-      type: remote.getGlobal('add').type,
-      tag: remote.getGlobal('add').tag,
-      tags: remote.getGlobal('add').tags
+      message: getGlobal('add').message,
+      title: getGlobal('add').title,
+      code: getGlobal('add').code,
+      band: getGlobal('add').band,
+      year: getGlobal('add').year,
+      genre: getGlobal('add').genre,
+      lyrics: getGlobal('add').lyrics,
+      type: getGlobal('add').type,
+      tag: getGlobal('add').tag,
+      tags: getGlobal('add').tags
     }
   }
 
   componentDidMount() {
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "add";
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "add";
     document.addEventListener("keydown", this.pressEnter, false);
   }
 
   componentWillUnmount() {
 
-    remote.getGlobal('add').title = this.video_title.value;
-    remote.getGlobal('add').code = this.video_code.value;
-    remote.getGlobal('add').band = this.video_band.value;
-    remote.getGlobal('add').tag = this.tag.value;
-    remote.getGlobal('add').lyrics = this.CKEditor.editor !== null ? this.CKEditor.editor.getData() : "";
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "";
+    getGlobal('add').title = this.video_title.value;
+    getGlobal('add').code = this.video_code.value;
+    getGlobal('add').band = this.video_band.value;
+    getGlobal('add').tag = this.tag.value;
+    getGlobal('add').lyrics = this.CKEditor.editor !== null ? this.CKEditor.editor.getData() : "";
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "";
     document.removeEventListener("keydown", this.pressEnter, false);
   }
 
   pressEnter(event) {
-    if (event.keyCode === 13 && remote.getGlobal('enterTracker').tag_insert_tracker === false && remote.getGlobal('enterTracker').component_tracker === "add") {
+    if (event.keyCode === 13 && getGlobal('enterTracker').tag_insert_tracker === false && getGlobal('enterTracker').component_tracker === "add") {
       this.handleSubmit();
-    } else if (event.keyCode === 13 && remote.getGlobal('enterTracker').tag_insert_tracker === true && remote.getGlobal('enterTracker').component_tracker === "add") {
+    } else if (event.keyCode === 13 && getGlobal('enterTracker').tag_insert_tracker === true && getGlobal('enterTracker').component_tracker === "add") {
       this.addTag();
     }
   }
@@ -66,7 +66,7 @@ class AddVideo extends Component {
         this.addVideo(this.video_code.value, this.video_title.value, this.video_band.value, this.state.year, this.CKEditor.editor.getData(), this.state.genre, this.state.type, this.state.tags);
       }
 
-      if (remote.getGlobal('editing').editing_video === true) {
+      if (getGlobal('editing').editing_video === true) {
 
         let confirm_delete = confirm("Warning, any unsaved changes will be lost if confirmed.");
 
@@ -90,8 +90,8 @@ class AddVideo extends Component {
     band = band.trim();
     year = year.trim();
 
-    remote.getGlobal('add').just_inserted_code = code;
-    remote.getGlobal('search').prev_view = "adding";
+    getGlobal('add').just_inserted_code = code;
+    getGlobal('search').prev_view = "adding";
 
     this.props.videos.findOne({video_code: code}, function(err, doc) {
 
@@ -110,7 +110,7 @@ class AddVideo extends Component {
           video_type: type,
           video_tags: tags,
           video_stars: "0",
-          list_id: remote.getGlobal('listTracker').list_id
+          list_id: getGlobal('listTracker').list_id
         };
 
         this.props.videos.insert(video, function(err, docs) {
@@ -119,16 +119,16 @@ class AddVideo extends Component {
 
           this.setState({ code: "", title: "", band: "", year: "", genre: "", lyrics: "", type: "", tag: "", tags: [] });
 
-          remote.getGlobal('add').message = output;
-          remote.getGlobal('add').title = "";
-          remote.getGlobal('add').code = "";
-          remote.getGlobal('add').band = "";
-          remote.getGlobal('add').year = "";
-          remote.getGlobal('add').genre = "";
-          remote.getGlobal('add').lyrics = "";
-          remote.getGlobal('add').type = "";
-          remote.getGlobal('add').tag = "";
-          remote.getGlobal('add').tags = [];
+          getGlobal('add').message = output;
+          getGlobal('add').title = "";
+          getGlobal('add').code = "";
+          getGlobal('add').band = "";
+          getGlobal('add').year = "";
+          getGlobal('add').genre = "";
+          getGlobal('add').lyrics = "";
+          getGlobal('add').type = "";
+          getGlobal('add').tag = "";
+          getGlobal('add').tags = [];
           this.video_title.value = "";
           this.video_code.value = "";
           this.video_band.value = "";
@@ -188,15 +188,15 @@ class AddVideo extends Component {
 
         this.tag.blur();
 
-        remote.getGlobal('add').tags = this.state.tags;
-        remote.getGlobal('add').tag = "";
-        remote.getGlobal('enterTracker').tag_insert_tracker = false;
-        remote.getGlobal('enterTracker').component_tracker = "add";
+        getGlobal('add').tags = this.state.tags;
+        getGlobal('add').tag = "";
+        getGlobal('enterTracker').tag_insert_tracker = false;
+        getGlobal('enterTracker').component_tracker = "add";
       } else {
         alert("You have already entered that tag for this video.");
       }
     } else {
-      remote.getGlobal('enterTracker').component_tracker = "add";
+      getGlobal('enterTracker').component_tracker = "add";
       this.handleSubmit();
     }
   }
@@ -224,83 +224,83 @@ class AddVideo extends Component {
 
     this.setState(state);
 
-    remote.getGlobal('add').tags = this.state.tags;
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "add";
+    getGlobal('add').tags = this.state.tags;
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "add";
   }
 
   hide_message() {
     this.setState( { message: "" }, function() {
-      remote.getGlobal('add').message = "";
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "add";
+      getGlobal('add').message = "";
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "add";
     });
   }
 
   handle_title_Change(event) {
     this.setState({ title: event.target.value }, function() {
-      remote.getGlobal('add').title = this.state.title;
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "add";
+      getGlobal('add').title = this.state.title;
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "add";
     });
   }
 
   handle_code_Change(event) {
     this.setState({ code: event.target.value }, function() {
-      remote.getGlobal('add').code = this.state.code;
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "add";
+      getGlobal('add').code = this.state.code;
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "add";
     });
   }
 
   handle_band_Change(event) {
     this.setState({ band: event.target.value }, function() {
-      remote.getGlobal('add').band = this.state.band;
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "add";
+      getGlobal('add').band = this.state.band;
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "add";
     });
   }
 
   handle_year_Change(event) {
     this.setState({ year: event.target.value }, function() {
-      remote.getGlobal('add').year = this.state.year;
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "add";
+      getGlobal('add').year = this.state.year;
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "add";
     });
   }
 
   handle_lyrics_Change(event) {
     this.setState({ lyrics: event.editor.getData() }, function() {
-      remote.getGlobal('add').lyrics = this.state.lyrics;
-      remote.getGlobal('enterTracker').component_tracker = "add";
+      getGlobal('add').lyrics = this.state.lyrics;
+      getGlobal('enterTracker').component_tracker = "add";
     });
   }
 
   handle_genre_Change(event) {
     this.setState({ genre: event.target.value }, function() {
-      remote.getGlobal('add').genre = this.state.genre;
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "add";
+      getGlobal('add').genre = this.state.genre;
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "add";
     });
   }
 
   handle_type_Change(event) {
     this.setState({ type: event.target.value }, function() {
-      remote.getGlobal('add').type = this.state.type;
-      remote.getGlobal('enterTracker').tag_insert_tracker = false;
-      remote.getGlobal('enterTracker').component_tracker = "add";
+      getGlobal('add').type = this.state.type;
+      getGlobal('enterTracker').tag_insert_tracker = false;
+      getGlobal('enterTracker').component_tracker = "add";
     });
   }
 
   handle_tags_Change(event) {
     this.setState({ tag: event.target.value }, function() {
-      remote.getGlobal('add').tag = this.state.tag;
+      getGlobal('add').tag = this.state.tag;
     });
   }
 
   handle_tracker_tags_onClick() {
-    remote.getGlobal('enterTracker').tag_insert_tracker = true;
-    remote.getGlobal('enterTracker').component_tracker = "add";
+    getGlobal('enterTracker').tag_insert_tracker = true;
+    getGlobal('enterTracker').component_tracker = "add";
   }
 
 
@@ -323,17 +323,17 @@ class AddVideo extends Component {
     this.video_band.value = "";
     this.tag.value = "";
 
-    remote.getGlobal('add').title =  "";
-    remote.getGlobal('add').code = "";
-    remote.getGlobal('add').band = "";
-    remote.getGlobal('add').year = "";
-    remote.getGlobal('add').genre = "";
-    remote.getGlobal('add').lyrics = "";
-    remote.getGlobal('add').type = "";
-    remote.getGlobal('add').tag = "";
-    remote.getGlobal('add').tags = [];
-    remote.getGlobal('enterTracker').tag_insert_tracker = false;
-    remote.getGlobal('enterTracker').component_tracker = "add";
+    getGlobal('add').title =  "";
+    getGlobal('add').code = "";
+    getGlobal('add').band = "";
+    getGlobal('add').year = "";
+    getGlobal('add').genre = "";
+    getGlobal('add').lyrics = "";
+    getGlobal('add').type = "";
+    getGlobal('add').tag = "";
+    getGlobal('add').tags = [];
+    getGlobal('enterTracker').tag_insert_tracker = false;
+    getGlobal('enterTracker').component_tracker = "add";
   }
 
   render() {
