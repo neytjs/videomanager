@@ -212,73 +212,37 @@ class Utilities {
 
 
     static occurrenceCounter(the_array, test_value, count_property) {
-      var arguments_length = arguments.length;
+      let arguments_length = arguments.length;
+      let set = new Set();
+      let occurrences = [];
 
-      if (the_array.length > 0) {
+      for (let i = 0, length = the_array.length; i < length; i++) {
+        set.add(the_array[i][test_value]);
+      }
 
-        var occurrences = [];
-
-        var counter = 0;
-
-        var new_array = [];
-
-        for (var i = 0; i < the_array.length; i++) {
-          new_array.push( Object.assign({}, the_array[i]) );
-        }
-
-        var nwarlen = the_array.length;
-
-
-        function recursiveCounter() {
-
-          occurrences.push(new_array[0]);
-
-          new_array.splice(0, 1);
-
-          var last_occurrence_element = occurrences.length - 1;
-
-          var last_occurrence_entry = occurrences[last_occurrence_element][test_value];
-
-          occurrences[last_occurrence_element].quantity = 0;
-          if (arguments_length > 2) {
-            var last_occurrence_count_property = parseInt(occurrences[last_occurrence_element][count_property]);
-            occurrences[last_occurrence_element].count_property = [];
-          }
-
-          var occur_counter = 0;
-
-          for (var i = 0; i < occurrences.length; i++) {
-            if (occurrences[i][test_value] === last_occurrence_entry) {
-
-              occurrences[i].quantity = occurrences[i].quantity + 1;
-
-              occur_counter = occur_counter + 1;
-              if (arguments_length > 2) {
-
-                occurrences[i].count_property.push(last_occurrence_count_property);
-              }
+      function insertOccurrenceCount(value) {
+        let counter = 0;
+        let count_vals = [];
+        let elem = {};
+        for (let i = 0, length = the_array.length; i < length; i++) {
+          if (value === the_array[i][test_value]) {
+            counter = counter + 1;
+            elem = the_array[i];
+            if (arguments_length > 2) {
+              let occurrence_count_property = parseInt(the_array[i][count_property]);
+              count_vals.push(occurrence_count_property);
             }
           }
-
-          if (occur_counter > 1) {
-            occurrences.splice(last_occurrence_element, 1);
-          }
-
-
-          counter = counter + 1;
-
-
-          if (counter < nwarlen) {
-            recursiveCounter();
-          }
         }
-
-
-        recursiveCounter();
-
-
-        return occurrences;
+        elem.quantity = counter;
+        if (count_vals.length > 0) {
+          elem.count_property = count_vals;
+        }
+        occurrences.push(elem);
       }
+      set.forEach(insertOccurrenceCount);
+
+      return occurrences;
     }
 
 
